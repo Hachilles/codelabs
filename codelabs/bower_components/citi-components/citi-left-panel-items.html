@@ -1,0 +1,151 @@
+	<dom-module id="citi-left-panel-items"> 
+	
+	<style is="custom-style">
+paper-dialog.size-position {
+     width: 500px;
+     overflow: auto;
+}
+.menu {
+display: inline-block;
+width: 100%;
+background-color: #fff;
+}
+
+.item {
+	position: relative;
+	height: 48px;
+	line-height: 48px;
+	color: var(--google-blue-700);
+	font-size: 0.7em;
+	cursor: pointer;
+}
+
+.menu.blue>.item {
+	color: var(--google-blue-700);
+}
+
+.label {
+	padding: 0 16px;
+	font-size: 1.5em;
+}
+
+.plain {
+	text-decoration: none
+}
+
+.groupHeader {
+	color: #004D40;
+	background:#E0F2F1;
+	font-size:15px;
+}
+
+.action:hover {
+	background: #E3F2FD;
+}
+
+.action {
+	cursor: pointer;
+	color: #333333;
+}
+
+paper-item.paper-item-0 {
+	font-weight: 300;
+}
+	</style>	
+	<template>
+	<iron-ajax url="/addNewGroupItem" handle-as="json"
+		on-response='addNewGroupItemResponse' content-type="application/json"
+		id='addNewGroupItemAjax' method="POST"></iron-ajax> 
+	
+	<iron-ajax url="/load_main_left_panel" handle-as="json" auto
+		on-response="loadMainLeftPanelResponse" id="populateLftPanel"></iron-ajax>
+	<div class='menu blue '>
+		<template is="dom-repeat" items="{{listGroups}}" as='groups'>
+			<paper-item class="groupHeader">
+			<paper-item-body>{{groups.group}}</paper-item-body>
+              <paper-icon-button icon="add" on-click="addNewGroupItemOpenDialog" data-args$="{{groups._id}}"></paper-icon-button>
+           </paper-item>
+			
+			<template is="dom-repeat" items="{{groups.categories}}" index-as='no'>
+			<paper-item on-click='item_click' data-args$="{{item}},{{groups._id}}"
+				class='action iconItem'> <paper-ripple></paper-ripple> 
+				<span data-args$="{{item}},{{groups._id}}">{{item}}</span> </paper-item>
+			</template> 
+		</template>
+	</div>
+
+	</template> 
+	
+	<script>
+	CitiLeftPanelItems = Polymer({
+      is: 'citi-left-panel-items',
+      ready: function() {
+    	  //this.concepts = [{description: 'Web', path: 'doc_root/web'}];
+      },
+      properties: {
+            listGroups:{
+                type: Object,
+                notify: true
+            },
+			groupItem:String,
+			groupId:String,
+			config: {
+				type: Object,
+				notify:true
+			}
+      },
+      factoryImpl: function(_id, config) {
+          this.id = _id;
+          this.config = config;
+       },
+      item_click: function(e){
+    	
+     	var p = Polymer.dom(e).path[0].getAttribute('data-args').split(',');
+     	
+     	this.config.parent.setParam('route.__queryParams.groupID', p[1]);
+     	this.config.parent.setParam('route.__queryParams.category', p[0]);
+     	this.config.cardsPanel.$.cardsLoadAjax.body = JSON.stringify(this.config.parent.route.__queryParams);
+    	this.config.cardsPanel.$.cardsLoadAjax.generateRequest();
+     	console.log(this.config);
+       },
+       
+       loadMainLeftPanelResponse : function(e, detail, sender){
+    	    this.listGroups = e.detail.response;
+	         var item0 = this.listGroups[0];
+    	     if(item0){
+    	    	this.config.parent.setParam('route.__queryParams.groupID', item0._id);
+    	     	this.config.parent.setParam('route.__queryParams.category', item0.categories[0]);
+    	     	
+    	     	this.config.cardsPanel.$.cardsLoadAjax.body = JSON.stringify(this.config.parent.route.__queryParams);
+     	    	this.config.cardsPanel.$.cardsLoadAjax.generateRequest();
+    	     }
+         },
+      refresh : function(){
+      	   this.$.populateLftPanel.generateRequest();
+      },
+      addNewGroupItemOpenDialog : function(e){
+	   	   this.groupId = e.target.getAttribute('data-args');
+	   	   if(!this.groupId){
+	   		   this.groupId = e.target.parentElement.getAttribute('data-args');
+	   	   }
+	   	  
+	   	  this.config.parent.$.newGroupItemDialog.open();
+	 	   
+		},
+		addNewGroupItem: function(groupItem){
+			this.$.addNewGroupItemAjax.body = JSON.stringify({groupID: this.groupId, groupItem: groupItem});
+			this.$.addNewGroupItemAjax.generateRequest();
+		},
+       addNewGroupItemResponse : function(e, detail, sender){
+          var d = e.detail.response;
+           if (d.result == 'OK'){
+        	  this.config.parent.$.newGroupItemDialog.close();
+        	  this.refresh();
+          }else{
+        	  console.log('Error');
+          }
+	}
+    });
+    
+  </script>
+	</dom-module>

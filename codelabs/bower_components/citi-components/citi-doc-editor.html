@@ -1,0 +1,423 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="import" href="editor_imports.html">
+</head>
+<body unresolved>
+
+	<dom-module id="citi-doc-editor"> 
+	<template>
+	<style is custome-style>
+	#drawer {
+		background-color: #f1f1f3;
+	}
+	
+	#paperDrawerPanel [main] {
+		background-color: #f1f1f3;
+		-webkit-overflow-scrolling: touch;
+		scroll-behavior: smooth;
+	}
+	
+	.hide {
+		display: node;
+	}
+	
+	.content {
+		margin: 20px;
+	}
+	
+	.fab {
+		position: fixed;
+		z-index: 1;
+	}
+	
+	.top {
+		top: 16px;
+	}
+	
+	.bottom {
+		bottom: 20px;
+	}
+	
+	.right {
+		right: 19px;
+	}
+	
+	.left {
+		left: 16px;
+	}
+	
+	.save { 
+		--paper-fab-background: var(--paper-yellow-500); 
+		--paper-fab-keyboard-focus-background: var(--paper-yellow-900);
+		right: 32px;
+		top: 67px;
+	}
+	
+	.addDoc { 
+		--paper-fab-background: var(--paper-orange-500); 
+		--paper-fab-keyboard-focus-background: var(--paper-orange-900);
+		left: 14em;
+	}
+	#citi_logo {
+    --iron-image-height: 25px;
+  }
+	#paperDrawerPanel [main] {
+		background-color: #CFD8DC;
+		-webkit-overflow-scrolling: touch;
+		scroll-behavior: smooth;
+	}
+	
+	paper-progress.red { 
+		-paper-progress-active-color: #ff4081;
+		-paper-progress-secondary-color: var(--paper-red-100);
+		width: 100%;
+		display: none;
+	}
+	
+	paper-scroll-header-panel {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		background-color: var(--paper-grey-200, #eee);;
+	}
+	
+	paper-toolbar {
+		background-color: var(--google-blue-500, #4285f4);
+	}
+	
+	paper-toolbar .title {
+		margin: 0 8px;
+	}
+	
+	paper-scroll-header-panel .content {
+		padding: 8px;
+	}
+	footer[wide-layout] {
+		width: calc(100% - 256px);
+		position: fixed;
+		height: 5em;
+		background: tranperant; 
+		bottom: 10px;
+		@apply(--layout-horizontal);
+      	@apply(--layout-justified);
+	}
+	footer {
+		position: fixed;
+		width: 100%;
+		height: 5em;
+		background: tranperant; 
+		bottom: 10px;
+		@apply(--layout-horizontal);
+      	@apply(--layout-justified);
+	}
+	footer.right{ margin-right:10px;}
+	footer.left{ margin-left:10px;}
+</style>
+  	<iron-media-query query="(min-width: 600px)" query-matches="{{wide}}"></iron-media-query>
+    <app-route route="{{route}}" pattern="/:page" data="{{data}}"></app-route>
+  
+	<iron-ajax url="/saveDocContent" id='saveAjax' handle-as="json"
+		content-type="application/json"
+		on-response="saveResponse"
+		method='POST'></iron-ajax> 
+	<iron-ajax
+		id='fileContentAjax' url="/loadDocContent" handle-as="json"
+		content-type="application/json"
+		on-response="handleResponse" method='POST'></iron-ajax>
+		
+		
+	<paper-drawer-panel id='paperDrawerPanel'>
+	<paper-header-panel drawer id="drawer"> 
+	<paper-toolbar>
+		<iron-image id="citi_logo"
+			alt="Citi logo" src="/img/citi_corp.png"></iron-image> 
+		<div> Doc Editor </div>
+	</paper-toolbar> 
+	<paper-fab
+		class="fab top addDoc" id='addpage_btn' icon="note-add"
+		title="Add new page" on-tap="addNewPage" mini></paper-fab>
+	<div id="leftNumberPanelDiv" drawer style='margin: 16px 16px 16px 12px;'>
+		<citi-left-panel-number-items id='lp' config="{{config}}"></citi-left-panel-number-items>
+	</div>
+	</paper-header-panel> 
+	<paper-scroll-header-panel main fixed> 
+	<paper-toolbar>
+		<paper-icon-button icon="arrow-back" on-click="goBack"></paper-icon-button>
+		<div class="flex title">{{route.__queryParams.docName}}</div>
+		<paper-icon-button icon="search"></paper-icon-button> 
+		<paper-icon-butto icon="more-vert"></paper-icon-button> </paper-toolbar>
+		
+		<div style='width: 100%'>
+			<paper-progress class="red" id='progress' indeterminate value="800"
+				min="100" max="1000"></paper-progress>
+		</div>
+		
+	<paper-material elevation="4" class="content" main
+		style='background:#FFFFFF'> 
+		
+	<div id='citi_doc_container' style='margin: 40px;font-size:14px'></div>
+	<paper-fab class="fab save" id="save_btn" icon="check" title="Save"
+		on-tap="save"></paper-fab> </paper-material> 
+	<footer wide-layout$={{wide}}>
+		<div>
+			<paper-fab id='back_btn' class="left" icon="arrow-back" title="Previous Page" disabled
+				on-tap="movebackward"></paper-fab>
+		</div>
+		<div>
+			<paper-fab id='forward_btn' class="right"
+				icon="arrow-forward" title="Next Page" on-tap="moveForward"></paper-fab>
+		</div>
+	</footer> </paper-scroll-header-panel> 
+	</paper-drawer-panel> 
+	
+	<paper-toast id="msg" text="Content is Saved .."></paper-toast> 
+	
+	</template> 
+	
+	<script>
+	HTMLImports.whenReady(function () {
+    CodeLabsEditor = Polymer({
+      is: 'citi-doc-editor',
+      properties: {
+    	  route: {
+            type: Object,
+            notify: true
+          },
+          data: {
+            type: Object,
+            value: function() {
+              return {
+                page: '/editDoc/'
+              };
+            }
+          },
+    	  mode:{
+    		  type: String,
+    		  value: 'view',
+    		  notify : true
+    	  },
+			
+		  page: {type:Number,
+			  	value:0
+		  },
+		  config : {
+				type:Object,
+				value:{
+				},
+				notify :true
+			},
+		  noOfPages: {type:Number,
+			  	value:1
+		  }
+      },
+      setParam: function (path, value){
+			this.set(path, value);
+	  },
+      attached:function (){
+		this.set('config.route', this.route);
+		this.set('config.parent', this);
+		this.noOfPages = 0;
+		this.page = 0;//reset
+		this.set('config.leftPanel', this.$.lp);
+			
+	},
+	reload: function(){
+		//this.clearDocContent();
+		this.config.leftPanel.$.lftPanelAjax.body = JSON.stringify(this.route.__queryParams);
+		this.config.leftPanel.$.lftPanelAjax.generateRequest();
+	},
+	loadPageContent(pid){
+		this.$.fileContentAjax.body = JSON.stringify({pageId:pid});
+  	  	this.$.fileContentAjax.generateRequest();
+	},
+	observers: [
+                'loadLeftPanelListner(route.__queryParams.groupID, route.__queryParams.category, route.path)'
+              ],
+              loadLeftPanelListner(g, c, p){
+	        	this.debounce('loadLeftPanelListner', function(){
+	        		if(p	 == '/editDoc/'){
+	        			this.reload();
+	        		}
+				}, 100);
+    		},
+      goBack : function(){
+    	  delete this.route.__queryParams.pageId;
+    	  this.set('route.path', '/cardsPanel');
+      },
+      
+      toggleSelection: function(e) {
+        var item = this.$.employeeList.itemForElement(e.target);
+        this.$.selector.select(item);
+      },
+      
+      addNewPage : function(){
+    	  this.config.leftPanel.addNewPageOpenDialog ();
+      },
+      
+      handleResponse: function(e, detail, sender){
+          var d = e.detail.response;
+          if(d){
+	          this.$.citi_doc_container.innerHTML=d.content;
+	          this.pageId = d._id;
+	          if(this.mode == 'edit'){
+	          	setupEditor(this.mode);
+	      	  }else{
+	    		this.$.save_btn.remove();
+	    		this.$.addpage_btn.remove();
+	      		setupEditor();
+	      		this.$.citi_doc_container.contentEditable =false;
+	      	  }
+          }else{
+        	  this.$.citi_doc_container.innerHTML="";
+          }
+          this.$.progress.style.display='none';
+        },
+        clearDocContent: function(){
+        	this.$.citi_doc_container.innerHTML="";
+        },
+        saveResponse: function(e, detail, sender){
+            var d = e.detail.response;
+            this.$.msg.show();
+            this.$.progress.style.display='none';
+        },
+        save : function(){
+        	this.$.progress.style.display='block';
+        	var pageContent = this.$$('#citi_doc_container').innerHTML;
+        	console.log(pageContent);
+        	console.log(this.pageId)
+        	this.$.saveAjax.body = JSON.stringify({pageId : this.pageId, content: pageContent});
+        	this.$.saveAjax.generateRequest();
+        },
+        moveForward :  function(){
+        	this.page ++;
+        	this.config.leftPanel.itemClick();
+        },
+        movebackward :  function(){
+        	this.page --;
+        	this.config.leftPanel.itemClick();
+        },
+   
+     pageNavButtonControl : function(){
+    	 if(this.noOfPages == 1){
+    		 this.$.back_btn.setAttribute('disabled', true);
+    		 this.$.forward_btn.setAttribute('disabled', true);
+    	 }else if(this.page == 0){
+    		  this.$.back_btn.setAttribute('disabled', true);
+    		  this.$.forward_btn.removeAttribute('disabled');
+    	 }else if(this.page == (this.noOfPages - 1)){
+    		 this.$.back_btn.removeAttribute('disabled');
+    		 this.$.forward_btn.setAttribute('disabled', true);
+    	 }else{
+    		this.$.back_btn.removeAttribute('disabled');
+    		this.$.forward_btn.removeAttribute('disabled');
+    	 }
+     }
+ })
+       
+     
+     function setupEditor(mode){
+    	 var allStyleClasses = "edit-javascript edit-markup edit-css hint warning blackQuote";
+		 var editor = new MediumEditor('#citi_doc_container', {
+            toolbar: {
+                buttons: ['bold', 'italic', 'underline', 'strikethrough', 'fontsize', 'anchor', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull', 'superscript', 'subscript', 'orderedlist', 'unorderedlist', 'removeFormat', 'outdent', 'indent', 'h2', 'h3','table','quote','warning', 'hint', 'js','html','css'],
+            } ,
+            extensions: {
+                'table': new MediumEditorTable(),
+                'warning': new MediumButton({
+                    label: '<i class="fa fa-exclamation-triangle" title="Warning"></i>',
+                  	action:function (html, mark){
+                     	 return toggleStyle(html, mark, 'warning', allStyleClasses);
+                      }
+                 }),
+                 'hint': new MediumButton({
+                     label: '<i class="fa fa-info-circle" title="Hint"></i>',
+                     action:function (html, mark){
+                    	 return toggleStyle(html, mark, 'hint', allStyleClasses);
+                     }
+                  }),
+                  'js': new MediumButton({
+                      label: '<i class="fa fa-code" title="Javascript code"></i>',
+                      action:function (html, mark){
+                    	  return toggleStyle(html, mark, 'edit-javascript', allStyleClasses);
+                      } 
+                   }),
+                   'html': new MediumButton({
+                       label: '<i class="fa fa-html5" title="HTML code"></i>',
+                 	   action:function (html, mark){
+                      	  return toggleStyle(html, mark, 'edit-markup', allStyleClasses);
+                        }
+                   }),
+                   'css': new MediumButton({
+                       label: '<i class="fa fa-css3" title="CSS code"></i>',
+	               	   action:function (html, mark){
+	                      	  return toggleStyle(html, mark, 'edit-css', allStyleClasses);
+	                        }
+                    })
+              },
+            buttonLabels: 'fontawesome',
+            anchor: {
+                targetCheckbox: true
+            }
+        });
+		 
+		 if(mode == 'edit'){
+		    $('#citi_doc_container').mediumInsert({
+		        editor: editor
+		    });
+		 }else{
+			 $('pre[class*="edit-"]').each(function(){
+				 var cl = $(this).attr('class');
+				 $(this).addClass('line-numbers');
+				 var prism_cl = cl.replace('edit-','language-');
+				 $(this).find("p").each(function () {
+					    $(this).replaceWith($(this).text() + "<br/>");
+				 });
+				 var str = $(this).html();
+				 var regex = /<br\s*[\/]?>/gi;
+				 var code = $('<code/>').addClass(prism_cl).text(str.replace(regex, "\n"));
+				 $(this).html(code).removeClass(cl);
+				 
+			 })
+			 Prism.highlightAll(false, function(){});
+		 }
+		return editor;
+	}
+     
+     function toggleStyle(html,markup,langClass, allStyleClasses){
+    	 var obj = $(window.getSelection().anchorNode.parentElement);
+    	 var clsPre = obj.closest('pre');
+    	 if(clsPre.length > 0){
+    		 obj = clsPre;
+    	 }
+     	 var cl = obj.attr('class');
+     	 var hasOtherLangClass = obj.hasAnyClass(allStyleClasses);
+     	 if(obj.is('pre') && obj.hasClass(langClass)){
+     		obj.replaceWith(function(){
+     		    return $(this).contents();
+     		});
+     	 }else{
+     		if(hasOtherLangClass && obj.is('pre')){
+   				obj.removeClass(allStyleClasses).addClass(langClass);
+   				return html;
+     		}
+     		return '<pre class="' + langClass +'">'+ html +'</pre>';
+     	 }
+     	 return '';
+      }
+     $.fn.hasAnyClass = function() {
+    	    var classes = arguments[0].split(" ");
+    	    for (var i = 0; i < classes.length; i++) {
+    	        if (this.hasClass(classes[i])) {
+    	            return true;
+    	        }
+    	    }
+    	    return false;
+    	}
+	 });
+  </script> </dom-module>
+</body>
+</html>

@@ -1,0 +1,274 @@
+<link rel="import" href="home_imports.html">
+   <dom-module id="citi-doc-home-page"> 
+   
+   <style is="custom-style">
+   #errMsg {
+    --paper-toast-background-color: red;
+    --paper-toast-color: white;
+  	}
+  	#sucessMsg{
+  	--paper-toast-background-color: green;
+    --paper-toast-color: white;
+  	}
+  	
+    paper-dialog.size-position {
+      width: 500px;
+      overflow: auto;
+    }
+    .blueHeader {
+      background-color: #00897B;
+      color: #fff;
+    }
+
+    .blueHeader paper-icon-button {
+      --paper-icon-button-ink-color: white;
+    }
+
+    .iconItem {
+      color: #666;
+    }
+    .short {
+      padding-top: 12px;
+      height: 216px;
+    }
+	paper-progress.red {
+      --paper-progress-active-color: #ff4081;
+      --paper-progress-secondary-color: var(--paper-red-100);
+       width:100%;
+       display:none;
+    }
+	
+    #citi_logo {
+    --iron-image-height: 25px;
+  }
+  paper-dialog.colored {
+      color: crimson;
+    }
+    </style>
+   <template>
+   		
+	<!-- <iron-ajax  handle-as="json" content-type="application/json" id='ajaxCall' method="POST"></iron-ajax> -->
+    <paper-toast id="errMsg"  text="..." duration='5000' ></paper-toast>
+    <paper-toast id="successMsg"  text=".." duration='5000'></paper-toast>
+    
+    <iron-ajax url="/addNewGroup" handle-as="json"  body='[[getAjaxBodyForNewGrp(groupName)]]' on-response='addNewGroupResponse' content-type="application/json" id='addNewGroupAjax' method="POST"></iron-ajax>
+    <iron-ajax url="/addNewDoc" handle-as="json"  on-response='addNewDocResponse' content-type="application/json" id='addNewDocAjax' method="POST"></iron-ajax> 
+	<iron-media-query query="(min-width: 600px)" query-matches="{{wide}}"></iron-media-query>
+	
+	<app-drawer-layout>
+      <app-drawer swipe-open>
+        <app-header-layout has-scrolling-region>
+
+          <app-header class="blueHeader" waterfall fixed>
+            <app-toolbar>
+              <iron-image id="citi_logo" alt="Citi logo" src="/img/citi_corp.png"></iron-image>
+              <div style="font-size:12px">Code Labs</div>
+              <paper-icon-button icon="add-circle" on-click="addNewGroupOpenDialog" style="margin-left:35px"></paper-icon-button>
+            </app-toolbar>
+          </app-header>
+		
+		 <div id='leftPanelDiv'></div>
+          <!-- <citi-left-panel-items route="{{route}}" id="left_panel_items"></citi-left-panel-items> -->
+
+        </app-header-layout>
+      </app-drawer>
+
+      <app-header-layout>
+
+        <app-header class="blueHeader" condenses reveals effects="waterfall">
+          <app-toolbar>
+            <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
+            <div spacer title>{{route.__queryParams.category}}</div>
+            <paper-icon-button icon="add" on-click="addNewDocOpenDialog"></paper-icon-button>
+            <paper-icon-button icon="search"></paper-icon-button>
+          </app-toolbar>
+
+          <div style='width:100%'><paper-progress class="red" id='progress' indeterminate value="800" min="100" max="1000"></paper-progress></div>
+        </app-header>
+
+        <!-- <citi-list-cards id='cardsPanel' route="{{route}}"></citi-list-cards> -->
+        <div id="cardsPanelDiv"></div>
+
+      </app-header-layout>
+
+    </app-drawer-layout>
+	
+	
+	<paper-dialog id="newdocDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop class="size-position">
+      <div class="vertical-section">
+      	  <h2>New document</h2>
+	      <!-- <paper-input id="fn" label="File Name" required auto-validate error-message="File name can't be empty" value='{{doc_filename}}'></paper-input> -->
+	      <paper-input id="t" label="Title" required auto-validate error-message="Title can't be empty" value='{{doc_title}}'></paper-input>
+	      <paper-input id="des" label="Description" required auto-validate error-message="Description can't be empty" value='{{doc_description}}'></paper-input>
+	      <div class="buttons">
+	        <paper-button dialog-dismiss noink>
+	        	<iron-icon icon="close"></iron-icon>Cancel
+	        </paper-button>
+	        <paper-button autofocus on-tap='addNewDoc' noink>
+	        	<iron-icon icon="check"></iron-icon>Save
+	        </paper-button>
+      	</div>
+    </div>
+    </paper-dialog>
+	
+    <paper-dialog id="newGroupDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation" class="size-position" with-backdrop>
+      <div class="vertical-section">
+      	  <h2>New document</h2>
+	      <paper-input id="group" label="Group Name" required auto-validate error-message="Group can't be empty" value='{{groupName}}'></paper-input>
+	      <div class="buttons">
+	        <paper-button dialog-dismiss noink>
+	        	<iron-icon icon="close"></iron-icon>Cancel
+	        </paper-button>
+	        <paper-button autofocus on-tap='addNewGroup' noink>
+	        	<iron-icon icon="check"></iron-icon>Save
+	        </paper-button>
+      	</div>
+    </div></paper-dialog>
+    
+     <paper-dialog id="confirm" class="colored" with-backdrop>
+      <h2>Do you want to delete the selected Document ???</h2>
+      <p>This operation will delete all files related to the document and will not be able to recovered later!!!</p>
+      <paper-button dialog-dismiss>Decline</paper-button>
+      <paper-button autofocus on-click="delete" id ='deleteAcceptBtn'>Accept</paper-button>
+    </paper-dialog>
+    
+    <paper-dialog id="newGroupItemDialog" model entry-animation="scale-up-animation" exit-animation="fade-out-animation" class="size-position">
+	<div class="vertical-section">
+		<h2>New document</h2>
+		<paper-input id="groupItem" label="Group Item" required auto-validate
+			error-message="Group item can't be empty" value='{{groupItem}}'></paper-input>
+		<div class="buttons">
+			<paper-button dialog-dismiss noink> <iron-icon
+				icon="close"></iron-icon>Cancel </paper-button>
+			<paper-button autofocus on-tap='addNewGroupItem' noink>
+			<iron-icon icon="check"></iron-icon>Save </paper-button>
+		</div>
+	</div>
+	</paper-dialog> 
+	</template>
+	<script>
+	Polymer({
+		is:'citi-doc-home-page',
+		properties:{
+			
+			route: {
+	            type: Object,
+	            notify:true
+	          },
+	          data: {
+	              type: Object,
+	              value: function() {
+	                return {
+	                  page: '/cardsPanel/'
+	                };
+	              }
+	            },
+	            searchTail: {
+	                type: Object,
+	                notify: true
+	              },
+	              parent:{ 
+	            	  type:Object
+	              },
+	              
+			selectedcategory :{
+				type :String,
+				value:'0',
+				notify: true
+			},
+			
+			title :{
+				type :String,
+				notify: true
+			},
+			params:{
+				type :String,
+				notify: true
+			},
+					
+			doc_description: String,
+			doc_title: String,
+			
+			groupName: String,
+			config : {
+				type:Object,
+				value:{
+				},
+				notify :true
+			}
+			
+		},
+		
+		setParam: function (path, value){
+			this.set(path, value);
+		},
+		
+		attached: function (){
+				this.set('config.parent', this);
+				var cardsPanel = new CardsPanel('cardsPanelEle', this.config);
+				this.set('config.cardsPanel', cardsPanel);
+				
+				var leftPanel = new CitiLeftPanelItems('left_panel_items', this.config);
+				this.set('config.leftPanel', leftPanel);
+
+				Polymer.dom(this.$.cardsPanelDiv).appendChild(cardsPanel);
+				Polymer.dom(this.$.leftPanelDiv).appendChild(leftPanel);
+				
+			console.log('Config object.. :');
+			console.log(this.config);
+		},
+		addNewGroupItem : function(){
+			if(this.$.groupItem.validate()){
+				this.config.leftPanel.addNewGroupItem(this.$.groupItem.value);
+			}
+		},
+	     getAjaxBodyForNewGrp: function(group) {
+	   	  return JSON.stringify({group: group});
+	     }, 
+		addNewDoc : function(){
+			if(this.$.t.validate() && this.$.des.validate()){
+				var qp = this.route.__queryParams;
+				this.$.addNewDocAjax.body = JSON.stringify({title: this.doc_title, description: this.doc_description, groupID: qp.groupID, category: qp.category});
+				this.$.addNewDocAjax.generateRequest();
+			}
+		},
+		addNewGroup : function(){
+			if(this.$.group.validate()){
+				this.$.addNewGroupAjax.generateRequest();
+			}
+		},
+		addNewDocOpenDialog : function(){
+			this.$.newdocDialog.open();
+		},
+		addNewGroupOpenDialog : function(){
+			this.$.newGroupDialog.open();
+		},
+		addNewDocResponse : function(e, detail, sender){
+          var d = e.detail.response;
+          console.log(d);
+           if (d.result == 'OK'){
+        	  this.$.newdocDialog.close();
+        	  this.doc_description = this.doc_title = '';
+        	  this.config.leftPanel.refresh();
+          }else{
+        	  console.log('Error');
+          }
+		},
+		addNewGroupResponse : function(e, detail, sender){
+	          var d = e.detail.response;
+	           if (d.result == 'OK'){
+	        	  this.$.newGroupDialog.close();
+	        	  this.groupName = '';
+	        	  this.config.leftPanel.refresh();
+	          }else{
+	        	  console.log('Error');
+	          }
+		},
+		delete: function(){
+			this.config.cardsPanel.delete();
+		}
+		
+	})
+	
+	</script>
+</dom-module>

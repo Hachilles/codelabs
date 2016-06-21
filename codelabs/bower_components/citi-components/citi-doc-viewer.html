@@ -1,0 +1,304 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="import" href="editor_imports.html">
+<link rel="import" href="left-panel-viewer.html">
+</head>
+<body unresolved>
+<dom-module id="citi-doc-viewer"> 
+	<template>
+	<style is custome-style>
+	#drawer {
+		background-color: #f1f1f3;
+	}
+	
+	#paperDrawerPanel [main] {
+		background-color: #f1f1f3;
+		-webkit-overflow-scrolling: touch;
+		scroll-behavior: smooth;
+	}
+	
+	.hide {
+		display: node;
+	}
+	
+	.content {
+		margin: 20px;
+	}
+	
+	.fab {
+		position: fixed;
+		z-index: 1;
+	}
+	
+	
+	#citi_logo {
+    --iron-image-height: 25px;
+  }
+	#paperDrawerPanel [main] {
+		background-color: #CFD8DC;
+		-webkit-overflow-scrolling: touch;
+		scroll-behavior: smooth;
+	}
+	
+	paper-progress.red { -
+		-paper-progress-active-color: #ff4081;
+		-paper-progress-secondary-color: var(--paper-red-100);
+		width: 100%;
+		display: none;
+	}
+	
+	paper-scroll-header-panel {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		background-color: var(- -paper-grey-200, #eee);;
+	}
+	
+	paper-toolbar {
+		background-color: var(- -google-green-500, #60ab59);
+	}
+	
+	paper-toolbar .title {
+		margin: 0 8px;
+	}
+	
+	paper-scroll-header-panel .content {
+		padding: 8px;
+	}
+	
+	footer[wide-layout] {
+		width: calc(100% - 256px);
+		position: fixed;
+		height: 5em;
+		background: tranperant; 
+		bottom: 10px;
+		@apply(--layout-horizontal);
+      	@apply(--layout-justified);
+	}
+	footer {
+		position: fixed;
+		width:100%;
+		height: 5em;
+		background: tranperant; 
+		bottom: 10px;
+		@apply(--layout-horizontal);
+      	@apply(--layout-justified);
+	}
+	footer.right{ margin-right:10px;}
+	footer.left{ margin-left:10px;}
+</style>
+  
+  	<iron-media-query query="(min-width: 600px)" query-matches="{{wide}}"></iron-media-query>
+    <app-route route="{{route}}" pattern="/:page" data="{{data}}"></app-route>
+	<iron-ajax
+		id='loadDocContent' url="/loadDocContent" handle-as="json"
+		content-type="application/json"
+		on-response="docContentResponse" method='POST'></iron-ajax>
+		
+	<paper-drawer-panel id='paperDrawerPanel'>
+	<paper-header-panel drawer id="drawer"> 
+	<paper-toolbar>
+		<iron-image id="citi_logo"
+			alt="Citi logo" src="/img/citi_corp.png"></iron-image>
+		<div> Doc Viewer </div>
+	</paper-toolbar> 
+		
+	<div id="leftanelDiv" drawer style='margin: 16px 16px 16px 12px;'>
+		<left-panel-viewer id='lpViewer' config="{{config}}"></left-panel-viewer>
+	    </div>
+
+	</paper-header-panel> 
+	<paper-scroll-header-panel main fixed> 
+		<paper-toolbar>
+			<paper-icon-button icon="arrow-back" on-click="goBack"></paper-icon-button>
+			<div class="flex title">{{route.__queryParams.docName}}</div>
+			<paper-icon-button icon="search"></paper-icon-button> 
+			<paper-icon-button icon="translate"></paper-icon-button>
+			<paper-icon-button icon="more-vert"></paper-icon-button> </paper-toolbar>
+			
+			<div style='width: 100%'>
+				<paper-progress class="red" id='progress' indeterminate value="800"
+					min="100" max="1000"></paper-progress>
+			</div>
+			
+		<paper-material elevation="4" class="content" main
+			style='background:#FFFFFF'> 
+			
+		<div id='citi_doc_view_container' style='margin: 40px;font-size:14px'></div>
+		</paper-material> 
+		<footer wide-layout$={{wide}}>
+				<div>
+					<paper-fab id='back_btn' class="left"
+					icon="arrow-back" title="Previous Page" disabled on-tap="movebackward"></paper-fab>
+				</div>
+				<div>
+					<paper-fab id='forward_btn' class="right"
+					icon="arrow-forward" title="Next Page" on-tap="moveForward"></paper-fab>
+				</div>
+		</footer> 
+	</paper-scroll-header-panel> 
+	</paper-drawer-panel> 
+	
+	</template> 
+	
+	<script>
+	HTMLImports.whenReady(function () {
+    Polymer({
+      is: 'citi-doc-viewer',
+      properties: {
+    	  route: {
+            type: Object,
+            notify: true
+          },
+          data: {
+            type: Object,
+            value: function() {
+              return {
+                page: '/viewDoc/'
+              };
+            }
+          },
+  		  page: {type:Number,
+			  	value:0
+		  },
+		  config : {
+				type:Object,
+				value:{
+				},
+				notify :true
+			},
+		  noOfPages: {type:Number,
+			  	value:1
+		  }
+      },
+      setParam: function (path, value){
+			this.set(path, value);
+	  },
+      attached:function (){
+		this.set('config.route', this.route);
+		this.set('config.parent', this);
+		this.noOfPages = 0;
+		this.page = 0;//reset
+		this.set('config.leftPanel', this.$.lpViewer);
+	},
+
+	reload: function(){
+		//this.clearDocContent();
+		this.$.lpViewer.$.lftPanelAjax.body = JSON.stringify(this.route.__queryParams);
+		this.$.lpViewer.$.lftPanelAjax.generateRequest();
+	},
+	loadPageContent(pid){
+		this.$.loadDocContent.body = JSON.stringify({pageId:pid});
+  	  	this.$.loadDocContent.generateRequest();
+	},
+	viewLeftPanelLoadResponse : function(e, detail, sender){
+		
+	  this.listPages = e.detail.response;
+   	  var len = this.noOfPages = this.listPages.length;
+   	  this.loadPageContent(this.listPages[0]._id);
+   	  /* style control of left panel numbers*/
+   	  if(len > 1 ){
+   		  var id = '#round_' + (len - 2);
+   		  var spanEle = document.querySelector(id);
+   		  if(spanEle){
+    		  if(len == 2){
+    			  spanEle.classList.remove('single');
+    			  spanEle.classList.add('first');
+    		  }else{
+    			  spanEle.classList.remove('last');
+    		  }
+   		  }
+   	  }
+   	  this.config.parent.pageNavButtonControl();
+	},
+	observers: [
+                'loadLeftPanel_view_Listner(route.__queryParams.groupID, route.__queryParams.category, route.path)'
+              ],
+	loadLeftPanel_view_Listner(g, c, p){
+       	this.debounce('loadLeftPanel_view_Listner', function(){
+       		if(p	 == '/viewDoc/'){
+       			this.reload();
+       		}
+		}, 100);
+	},
+    		
+      goBack : function(){
+    	  delete this.route.__queryParams.pageId;
+    	  this.set('route.path', '/cardsPanel');
+      },
+      clearDocContent: function(){
+      	this.$.citi_doc_view_container.innerHTML="";
+      },
+      toggleSelection: function(e) {
+        var item = this.$.employeeList.itemForElement(e.target);
+        this.$.selector.select(item);
+      },
+      
+      addNewPage : function(){
+    	  this.config.leftPanel.addNewPageOpenDialog ();
+      },
+      
+      docContentResponse: function(e, detail, sender){
+          var d = e.detail.response;
+          if(d){
+	          this.$.citi_doc_view_container.innerHTML=d.content;
+	          this.pageId = d._id;
+          	  setupEditor(this.mode);
+      		  this.$.citi_doc_view_container.contentEditable =false;
+	      	 }
+        },
+        moveForward :  function(){
+        	this.page ++;
+        	this.config.leftPanel.itemClick();
+        },
+        movebackward :  function(){
+        	this.page --;
+        	this.config.leftPanel.itemClick();
+        },
+   
+     pageNavButtonControl : function(){
+    	 if(this.noOfPages == 1){
+    		 this.$.back_btn.setAttribute('disabled', true);
+    		 this.$.forward_btn.setAttribute('disabled', true);
+    	 }else if(this.page == 0){
+    		  this.$.back_btn.setAttribute('disabled', true);
+    		  this.$.forward_btn.removeAttribute('disabled');
+    	 }else if(this.page == (this.noOfPages - 1)){
+    		 this.$.back_btn.removeAttribute('disabled');
+    		 this.$.forward_btn.setAttribute('disabled', true);
+    	 }else{
+    		this.$.back_btn.removeAttribute('disabled');
+    		this.$.forward_btn.removeAttribute('disabled');
+    	 }
+     }
+ })
+     
+     function setupEditor(mode){
+    	 var allStyleClasses = "edit-javascript edit-markup edit-css hint warning blackQuote";
+		 
+			 $('pre[class*="edit-"]').each(function(){
+				 var cl = $(this).attr('class');
+				 $(this).addClass('line-numbers');
+				 var prism_cl = cl.replace('edit-','language-');
+				 $(this).find("p").each(function () {
+					    $(this).replaceWith($(this).text() + "<br/>");
+				 });
+				 var str = $(this).html();
+				 var regex = /<br\s*[\/]?>/gi;
+				 var code = $('<code/>').addClass(prism_cl).text(str.replace(regex, "\n"));
+				 $(this).html(code).removeClass(cl);
+				 
+			 })
+			 Prism.highlightAll(false, function(){});
+	}
+     
+	 });
+  </script> 
+ </dom-module>
+ </body>
+ </html>

@@ -1,0 +1,252 @@
+
+<dom-module id="citi-left-panel-number-items">
+
+<template>
+	<style is="custom-style">
+	paper-dialog.size-position {
+      width: 500px;
+      overflow: auto;
+	}
+	</style>
+	<iron-ajax url="/load_doc_left_panel" id="lftPanelAjax" handle-as="json"  content-type="application/json" on-response="leftPanelResponse" method="POST"></iron-ajax>
+	<div class='menu blue '> 
+		<paper-menu selected="0">
+	    <template is="dom-repeat" items="{{listPageDetails}}" index-as="no">
+		    <paper-item on-click='item_click' data-args$="{{item._id}},{{item.title}},{{no}}" class='toc-item' id$="item_{{no}}">
+		    	<paper-ripple center></paper-ripple>
+		    	<span id='round_{{no}}' class$="line [[computeClass(no, item._id)]]"></span>
+		    	<i class='toc-number' data-args$="{{item._id}},{{item.title}},{{no}}">{{displayIndex(no)}} </i>
+		    	<span data-args$="{{item._id}},{{item.title}},{{no}}">{{item.title}}</span>
+		    </paper-item>
+    	</template>
+    	</paper-menu>
+    </div>
+    
+    <iron-ajax
+		url="/createNewPage" id='newPageAjax' handle-as="json"
+		content-type="application/json" 
+		on-response="newPageResponse" method='POST'></iron-ajax> 
+		
+	<paper-dialog class="size-position"  id="newPage" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+		<div class="vertical-section">
+			<h2>New Page</h2>
+			<paper-input id='des' label="Page Title" required auto-validate
+				error-message="Title can't be empty" value='{{page_title}}'></paper-input>
+			<div class="buttons">
+				<paper-button dialog-dismiss> <iron-icon icon="close"></iron-icon>Cancel
+				</paper-button>
+				<paper-button autofocus on-tap='addNewPage'> 
+					<iron-icon icon="check"></iron-icon>Save 
+				</paper-button>
+			</div>
+		</div>
+	</paper-dialog> 
+</template>
+
+  <script>
+  LeftPanelNumberItems = Polymer({
+      is: 'citi-left-panel-number-items',
+      
+      properties:{
+    	  
+		listPageDetails :{
+			type :Object,
+			value:[]
+		},
+		config : {
+			type:Object,
+			notify :true
+		},
+		page_title: String
+      },
+      
+      factoryImpl: function(_id, config) {
+          this.id = _id;
+          this.config = config;
+       },
+       /*reload : function(){
+    	   this.config.parent.page = 0;
+  	      this.$.lftPanelAjax.body = JSON.stringify(this.config.parent.route.__queryParams);
+  		  this.$.lftPanelAjax.generateRequest();
+        },*/
+
+        item_click: function(e){
+         this.async(function(){
+        	 var t = Polymer.dom(e).path[0].getAttribute('data-args').split(',');
+	       	  this.config.parent.page = parseInt(t[2]);
+	       	  this.config.parent.loadPageContent(t[0]);
+	       	  this.config.parent.pageNavButtonControl();
+         })
+      },
+      
+      itemClick: function(){
+    	  var id = '#item_' + this.config.parent.page;
+    	  var item = this.$$(id);
+    	  if(item){
+    		  item.click();
+    	  }
+      },
+
+      leftPanelResponse: function(e, detail, sender){
+    	  this.listPageDetails = e.detail.response;
+    	  this.async(function(){
+	    	  var len = this.listPageDetails.length;
+	    	  this.config.parent.noOfPages = len;
+	    	  var isFirstTimePageLoad = (len == 0);
+	    	  if(isFirstTimePageLoad && this.config.parent.route.__queryParams.groupID && "edit" == this.config.parent.mode){
+	    		  this.addNewPageOpenDialog();
+	          }else if(len > 0){
+	        	  this.itemClick();
+	          }else{
+	        	  this.config.parent.clearDocContent();
+	          }
+	    	  this.config.parent.pageNavButtonControl();
+    	  }, 100);
+      },
+      
+      addNewPageOpenDialog : function(){
+			this.$.newPage.open();
+	  },
+	  addNewPage: function(){
+		  if(this.$.des.validate()){
+			  this.$.newPageAjax.body = JSON.stringify({title : this.page_title, docInfoId: this.config.parent.route.__queryParams.docId});
+			  this.$.newPageAjax.generateRequest();
+		  }
+	  },
+	  
+	  newPageResponse : function(e, detail, sender){
+		  var d = e.detail.response;
+         if (d._id){
+      	  this.$.newPage.close();
+      	  this.page_title = '';
+      	  this.$.lftPanelAjax.generateRequest();
+        }else{
+      	  console.log('Error');
+        } 
+	  },
+	  computeClass: function(index, id){
+    	  if(0 == index && this.listPageDetails.length == 1){
+    		  return 'single'; 
+    	  }else if (0 == index){
+    		  return 'first'; 
+    	  }else if(this.listPageDetails.length - 1 === index) { 
+    		  return 'last'; } 
+    	  else 
+    	    { return; }
+    	},
+    	displayIndex: function(index) {
+            return index + 1;
+        }
+      
+    });
+  </script>
+	<style>
+	:host{
+		--paper-item:{
+			font-size:14px;
+			background:red;
+		}
+	}
+i {
+    font-style: italic;
+}
+.toc-item.completed i, .toc-item.completed i::before, .toc-item.completed i::after, .toc-item.core-selected i, .toc-item.paper-selected i:before {
+    border-color: #00BCD4;
+}
+.toc-item i {
+    display: inline-block;
+    font-style: normal;
+    width: 24px;
+    min-width: 24px;
+    background: #fff;
+    border-radius: 50%;
+    text-align: center;
+    height: 24px;
+    vertical-align: middle;
+    line-height: 24px;
+    margin-right: 8px;
+    font-weight: 400;
+    border: 2px solid #4285f4;
+    z-index:2;
+}
+.toc-item i:before, .toc-item i:after {
+    display: block;
+    border-left: 1px solid #BDBDBD;
+    width: 0;
+    height: 50px;
+    }
+.toc-item.completed, .toc-item.paper-selected {
+    color: #333333;
+}
+paper-item.paper-item-0{
+font-size:14px;
+line-height: 17px;
+}
+
+.toc-item {
+    --paper-item:{
+			font-size:14px;
+		};
+    color: #333333;
+    overflow: hidden;
+    border-radius: 2px;
+    cursor:pointer;
+    padding:0px 16px;
+    
+}
+--paper-menu-selected-item:{
+background:#999999;
+}
+.line{
+	border-left: 1px solid #4285f4;
+    position: relative;
+    left: 15px;
+    height: 60px;
+    z-index: 1;
+}
+.line.first{
+	top:20px;
+}
+.line.last{
+	bottom:20px;
+}
+.line.single{
+	display:none;
+}
+.toc-item:hover{
+	background: #E3F2FD;
+}
+.toc-item i:before {
+  margin-top: -50px;
+  margin-left: 14px;
+  }
+.toc-item i:after {
+    margin-left: 14px;
+}
+	
+.menu {
+  display: inline-block;
+  width: 100%;
+  background-color: #fff;
+  counter-reset: section;
+}
+
+.item {
+  position: relative;
+  height: 48px;
+  line-height: 48px;
+  color: var(--google-blue-700);
+  font-size: 0.7em;
+  cursor:pointer;
+}
+
+.menu.blue > .item {
+  color: var(--google-blue-700);
+}
+.label {
+  padding: 0 16px;
+  font-size:1.5em;
+}
+.plain {text-decoration: none}
+	</style>
+</dom-module>

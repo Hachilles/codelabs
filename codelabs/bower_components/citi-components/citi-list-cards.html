@@ -1,0 +1,242 @@
+<html>
+<body>
+<dom-module id="citi-list-cards">
+
+<template>
+<style is="custom-style">
+	:host{
+		background:red;
+		--paper-card-header-color:red;
+        --paper-card:{
+		       	margin:15px;
+	        };
+	 }
+	 
+  	.small{
+  		font-sze:10px;
+  		color:var(--paper-amber-500);
+  	}
+     .round{
+     	border-radius:5px;
+     	cursor:pointer;
+     	color: #004D40;
+    	font-weight: 200;
+    	font-size:15px;
+    	font-family: Roboto, 'Helvetica Neue', Helvetica, Arial;
+     }
+     .round:hover{
+     	background:#E0F2F1;
+     }
+     .card-content{
+	    font-family: Roboto, 'Helvetica Neue', Helvetica, Arial;
+	    font-weight: 300;
+	    font-size: 16px;
+	    line-height: 1.5;
+	    color: #333333;
+	    border-radius: 4px;
+    }
+
+    .flex-center-justified {
+      @apply(--layout-center-justified);
+     }
+    .container {
+      @apply(--layout-horizontal);
+    }
+    .flexchild {
+      @apply(--layout-flex);
+      @apply(--layout-end-justified);
+    }
+     
+   paper-card.rate { @apply(--layout-horizontal);}
+  .rate-image {
+    width: 100px;
+    height: 178px;
+    background: url('/components/paper-card/demo/donuts.png');
+    background-size: cover;
+  }
+  .rate-content {
+    @apply(--layout-flex);
+    float: left;
+  }
+  .rate-header { @apply(--paper-font-headline); }
+  .rate-name { color: var(--paper-grey-600); margin: 10px 0; }
+  iron-icon.star {
+    --iron-icon-width: 16px;
+    --iron-icon-height: 16px;
+    color: var(--paper-amber-500);
+  }
+  iron-icon.calendar, iron-icon.user{
+  	color: var(--paper-amber-500);
+  	--iron-icon-width: 22px;
+    --iron-icon-height: 22px;
+  }
+  iron-icon.star:last-of-type { color: var(--paper-grey-500); }
+  .item-light { color: var(--paper-grey-600);}
+  .item {
+    float: right;
+    font-size: 14px;
+    font-weight:300;
+    vertical-align: middle;
+  }
+  .card-button-actions, .card-icon-actions{
+		@apply(--layout-horizontal);
+      	@apply(--layout-around-justified);
+      	color: #0097A7;
+      	border-top:1px solid #eeeeee;
+	}
+	
+</style>
+	<iron-media-query query="(min-width: 600px)" query-matches="{{wide}}"></iron-media-query>
+	<iron-ajax url="/deleteDoc" id='deleteDocAjax' handle-as="json" content-type="application/json" on-response="deleteResponse" body="" method='POST'></iron-ajax>
+	<iron-ajax url="/editDoc" id='editDocAjax' handle-as="json" content-type="application/json"  body='[[getEditAjaxReq(groupID, doc_id)]]' method='POST'></iron-ajax>
+	<iron-ajax url="/load_main_panel" id='cardsLoadAjax' content-type="application/json" handle-as="json" last-response="{{listdocs}}" method='POST'></iron-ajax>
+	<div id="cards">
+    <template is="dom-repeat" items="{{listdocs}}" as="doc">
+			<paper-card class="rate">
+			  <div class="rate-content">
+			    <div class="card-content">
+			      <div class="rate-header">{{doc.title}}
+			      </div>
+			      <div>{{doc.description}}</div>
+			      <div class="container">
+	        		<div class="item flexchild">
+				        <iron-icon class="star" icon="star"></iron-icon>
+				        <iron-icon class="star" icon="star"></iron-icon>
+				        <iron-icon class="star" icon="star"></iron-icon>
+				        <iron-icon class="star" icon="star"></iron-icon>
+				        <iron-icon class="star" icon="star"></iron-icon>
+				      	</div>
+				     <div class="item-light item flexchild" hidden$="{{!wide}}">
+	        			<iron-icon icon="icons:event" class="calendar"></iron-icon>
+	        			<span>On: [[displayDate(doc.createDate)]]</span>
+        			</div>
+        			<div class="item-light item flexchild" hidden$="{{!wide}}">
+	        			<iron-icon icon="icons:account-circle" class="user"></iron-icon>
+	        			<span>By: {{doc.createdBy}}</span>
+        			</div>
+      			 </div>
+			      
+			      <!-- <div class="rate-name">Mac Miller</div>-->
+			    </div>
+				    <div class="card-button-actions" hidden$="{{!wide}}">
+				      <paper-button data-args$="{{doc._id}},{{doc.title}}" on-click="view" class='round'>
+						View</paper-button>
+						<paper-button data-args$="{{doc._id}},{{doc.title}}"  on-click="edit" class='round'>
+						Edit</paper-button> 
+						<paper-button data-args$="{{doc._id}},{{doc.title}}" on-click="deleteDialogOpen" class='round'>
+						Delete</paper-button> 
+				    </div>
+				    <div class="card-icon-actions" hidden$="{{wide}}">
+				      	<paper-icon-button icon="pageview" data-args$="{{doc._id}},{{doc.title}}" on-click="view" title="View Documents"></paper-icon-button>
+						<paper-icon-button icon="create" data-args$="{{doc._id}},{{doc.title}}"  on-click="edit" title="View Document"></paper-icon-button>
+						<paper-icon-button icon="delete" data-args$="{{doc._id}},{{doc.title}}" on-click="deleteDialogOpen" title="Delete Document"></paper-icon-button>
+				    </div>
+			  </div>
+			  <div class="rate-image"></div>
+			</paper-card>
+    </template>
+    </div>
+    
+</template>
+
+  <script>
+  CardsPanel = Polymer({
+      is: 'citi-list-cards',
+      
+      properties: {
+    	 
+          listdocs: {
+              type: Object,
+              notify: true
+            },
+           
+    	  doc_id : {
+    		  type:String,
+    		  notify: true
+    	  },
+    	  doc_name : {
+    		  type:String,
+    		  notify: true
+    	  },
+    	  
+    	  config: {
+				type: Object,
+				notify:true
+		 }
+      },
+      
+      factoryImpl: function(_id, config) {
+          this.id = _id;
+          this.config = config;
+       },
+       
+      getEditAjaxReq : function(groupID, doc_id){
+    	  return JSON.stringify({groupID: groupID, doc_id: doc_id});
+      },
+      getData : function(e){
+    	  var data = e.target.getAttribute('data-args');
+	   	   if(!data){
+	   		   data = e.target.parentElement.getAttribute('data-args');
+	   	   }
+	   	   return data;
+      },
+      edit: function(e){
+    	  var p = this.getData(e).split(',');
+    	  this.doc_id = p[0];
+    	  this.doc_name = p[1];
+    	  this.config.parent.setParam("route.__queryParams.docId", p[0]);
+     	  this.config.parent.setParam("route.__queryParams.docName", p[1]);
+     	  this.config.parent.setParam("route.path", '/editDoc/');
+       },
+       attached : function(){
+     	  //alert("attached cards" + JSON.stringify(this.config.parent.route.__queryParams) )
+     	    this.$.cardsLoadAjax.body = JSON.stringify(this.config.parent.route.__queryParams);
+ 	    	this.$.cardsLoadAjax.generateRequest();
+       },
+       view: function(e){
+    	 var p = this.getData(e).split(',');
+     	 this.doc_id = p[0];
+     	 this.doc_name = p[1];
+     	 
+     	 this.config.parent.setParam("route.__queryParams.docId", p[0]);
+    	 this.config.parent.setParam("route.__queryParams.docName", p[1]);
+     	 this.config.parent.setParam("route.path", '/viewDoc/');
+       },
+       
+       delete: function(e){
+     	  this.$.deleteDocAjax.generateRequest();
+       },
+       
+       deleteResponse: function(e, detail, sender){
+       	var res = e.detail.response;
+       	if(res.Result == 'OK'){
+       		this.config.parent.$.confirm.close();
+       		this.refresh();
+       		this.config.parent.$.successMsg.text = 'Document deleted sucessfully ..';
+       		this.config.parent.$.successMsg.show();
+       	}else{
+       		this.config.parent.$.errMsg.text = 'Error occured while deleting a document...';
+       		this.config.parent.$.errMsg.show();
+       	}
+      },
+      
+      deleteDialogOpen : function(e){
+    	  var p = this.getData(e).split(",");
+     	  var _body = JSON.stringify({doc_id: p[0]});
+     	  this.$.deleteDocAjax.body = _body;
+    	  this.config.parent.$.confirm.open();
+      },
+      
+      refresh : function(){
+   	   this.$.cardsLoadAjax.generateRequest();
+      },
+      displayDate :function(dateStr){
+    	  var d = new Date(dateStr);
+    	  return d.getDate()+'/'+parseInt(d.getMonth() + 1)+'/'+d.getFullYear();
+      }
+    })
+    
+  </script>
+</dom-module>
+</body>
+</html>

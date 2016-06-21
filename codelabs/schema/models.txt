@@ -1,0 +1,36 @@
+
+module.exports = function(mongoose) {
+	var Schema = mongoose.Schema;
+	var groupModel = new Schema({
+	    group		: {type: String},
+	    author		: {type: String},
+	    categories 	: [String]
+	});
+	var documentInfo = new Schema({
+	    title: {
+	        type: String
+	    },
+	    description : {type:String},
+	    author		: {type: String},
+	    groupID		: {type: String},
+	    category 	: {type: String},
+	    createDate 	: { type: Date, default: Date.now },
+	    createdBy	: {type:String}
+	});
+	var pageDetails = new Schema({
+	    title		: {type: String},
+	    author		: {type: String},
+	    docInfoId	: {type:String},
+	    content		: {type:String},
+	    createDate 	: { type: Date, default: Date.now },
+	    createdBy	: {type:String},
+	    updatedDate	: { type: Date, default: Date.now }
+	});
+ 
+    var models = {
+      Groups : mongoose.model('Groups', groupModel),
+      DocumentInfo : mongoose.model('DocumentInfo', documentInfo),
+      PageDetails : mongoose.model('PageDetails', pageDetails)
+    };
+    return models;
+}
