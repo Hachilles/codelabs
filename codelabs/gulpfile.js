@@ -53,10 +53,12 @@ gulp.task('editor-css-concat',['clean'], function () {
 });
 
 gulp.task('vul', function () {
-    return gulp.src(['bower_components/citi-components/home_imports.html',
-                     'bower_components/citi-components/editor_imports.html',
-                     'bower_components/citi-components/citi-doc-home-page.html',
-                     'bower_components/citi-components/citi-doc-editor.html'])
+    return gulp.src(['bower_components/codelabs/home_imports.html',
+                     'bower_components/codelabs/editor_imports.html',
+                     'bower_components/codelabs/citi-doc-viewer.html',
+                     'bower_components/codelabs/citi-doc-home-page.html',
+                     'bower_components/codelabs/citi-doc-editor.html',
+                     'bower_components/codelabs/index.html'])
                      .pipe(vulcanize({
                     	 abspath: '',
                     	 excludes: [],
@@ -64,7 +66,7 @@ gulp.task('vul', function () {
                     	 stripComments: true,
                     	 inlineScript: true
                     	 
-                     })).pipe(crisper()).on("error", errorAlert).pipe(gulp.dest('bower_components/dist/citi-components'));
+                     })).pipe(crisper()).on("error", errorAlert).pipe(gulp.dest('bower_components/dist/codelabs'));
 });
 gulp.task('copy-dependencies', ['clean'], function () {
 	gulp.src('bower_components/web-animations-js/*.*')
@@ -75,6 +77,8 @@ gulp.task('copy-dependencies', ['clean'], function () {
 	.pipe(gulp.dest('bower_components/dist/promise-polyfill'));
 	gulp.src(['bower_components/paper-styles/demo.css'])
 	.pipe(gulp.dest('bower_components/dist/paper-styles'));
+	gulp.src(['public/img/*.*'])
+	.pipe(gulp.dest('bower_components/dist/img/'));
 });
 
 function errorAlert(err) {

@@ -1,6 +1,6 @@
 {
-  "name": "OpenShift-Sample-App",
-  "description": "OpenShift Sample Application",
+  "name": "Code labs",
+  "description": "Code labs tutorial Application",
   "main": "server.js",
   "authors": [
     "[object Object]"
@@ -22,6 +22,7 @@
     "tests"
   ],
   "dependencies": {
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.22",
     "paper-button": "PolymerElements/paper-button#^1.0.0",
     "paper-card": "PolymerElements/paper-card#^1.1.1",
     "paper-checkbox": "PolymerElements/paper-checkbox#^1.0.0",
@@ -44,10 +45,9 @@
     "iron-ajax": "PolymerElements/iron-ajax#^1.0.0",
     "app-route": "PolymerElements/app-route#^0.9.0",
     "iron-pages": "PolymerElements/iron-pages#^1.0.7",
-    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.2.3",
-    "google-youtube": "GoogleWebComponents/google-youtube#^1.1.0",
     "paper-toggle-button": "PolymerElements/paper-toggle-button#^1.0.0",
     "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.0.0",
-    "app-layout": "PolymerElements/app-layout#^0.9.0"
+    "app-layout": "PolymerElements/app-layout#^0.9.0",
+    "paper-slider": "PolymerElements/paper-slider#^1.0.11"
   }
 }
