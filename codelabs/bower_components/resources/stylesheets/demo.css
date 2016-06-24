@@ -1,0 +1,215 @@
+*:focus {
+    outline: none;
+}
+codetextarea{
+	width:80%;
+	height:100px;
+	max-height:400px;
+	margin:20px;
+}
+body {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 22px;
+    line-height: 30px;
+}
+
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: auto;
+    z-index: 10;
+    padding: 10px;
+    background-color: #000;
+    background-color: rgba(0, 0, 0, .8);
+    box-shadow: 0 0 4px #000;
+    box-sizing: border-box;
+    color: #ccc;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+h1 {
+    font-size: 60px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 40px;
+    letter-spacing: -2px;
+    border-bottom: 1px solid #dbdbdb;
+}
+
+h2 {
+    font-size: 32px;
+    line-height: 42px;
+}
+
+h3 {
+    font-size: 26px;
+    line-height: 32px;
+}
+
+h4 {
+    font-size: 24px;
+    line-height: 28px;
+}
+
+p {
+    margin-bottom: 20px;
+}
+
+a {
+    color:#cccccc;
+}
+
+a:hover {
+    color:green;
+}
+
+ pre {
+    font-family: 'Menlo', monospace;
+    font-size: 15px;
+    padding: 15px;
+    border: 1px solid #E1F5FE;
+    border-radius: 2px;
+    color: #cccccc;
+    background:#EEEEEE;
+    font-weight: 400;
+    overflow-wrap: break-word;
+    margin-bottom: 10px;
+}
+pre.hint,pre.warning  {
+    padding: 15px;
+    border: 0;
+    border-radius: 2px;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+}
+pre.hint {
+    background: #ded;
+    color: #464;
+    border-left:5px solid #6a6;
+}
+	
+pre.warning {
+    background:#fed;
+    color:#dc143c;
+    border-left:5px solid #dc143c;
+}
+
+blockquote {
+	font-family: Georgia, serif;
+	font-size: 16px;
+	font-style: italic;
+	margin: 0.25em 0;
+	padding: 1.0em 41px;
+	line-height: 1.45;
+	position: relative;
+	color: #383838;
+	background: whitesmoke;
+    border-radius: 2px;
+}
+blockquote:before {
+	display: block;
+	content: "\201C";
+	font-size: 80px;
+	position: absolute;
+	left: -6px;
+	top: -20px;
+	color: #ff4081;
+}
+
+#container {
+    width: 960px;
+    margin: 30px auto;
+}
+
+.editable,
+.secondEditable
+ {
+    outline: none;
+    margin: 0 0 20px 0;
+    padding: 0 0 20px 0;
+    border-bottom: 1px solid #dbdbdb;
+}
+
+#columns {
+    width: 90%;
+    margin: 30px auto;
+}
+
+.column-container {
+
+}
+
+.column {
+    vertical-align: top;
+    display: inline-block;
+    width: 30%;
+    margin: 10px 1%;
+}
+pre[class*="edit-"] {
+	color: black;
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+	direction: ltr;
+	text-align: left;
+	white-space: pre;
+	word-spacing: normal;
+	word-break: normal;
+	word-wrap: normal;
+	line-height: 1.5;
+
+	-moz-tab-size: 4;
+	-o-tab-size: 4;
+	tab-size: 4;
+
+	-webkit-hyphens: none;
+	-moz-hyphens: none;
+	-ms-hyphens: none;
+	hyphens: none;
+}
+
+/* Code blocks */
+pre[class*="edit-"] {
+	position: relative;
+	margin: .5em 0;
+	-webkit-box-shadow: -1px 0px 0px 0px #358ccb, 0px 0px 0px 1px #dfdfdf;
+	-moz-box-shadow: -1px 0px 0px 0px #358ccb, 0px 0px 0px 1px #dfdfdf;
+	box-shadow: -1px 0px 0px 0px #358ccb, 0px 0px 0px 1px #dfdfdf;
+	border-left: 10px solid #358ccb;
+	background-color: #fdfdfd;
+	background-image: -webkit-linear-gradient(transparent 50%, rgba(69, 142, 209, 0.04) 50%);
+	background-image: -moz-linear-gradient(transparent 50%, rgba(69, 142, 209, 0.04) 50%);
+	background-image: -ms-linear-gradient(transparent 50%, rgba(69, 142, 209, 0.04) 50%);
+	background-image: -o-linear-gradient(transparent 50%, rgba(69, 142, 209, 0.04) 50%);
+	background-image: linear-gradient(transparent 50%, rgba(69, 142, 209, 0.04) 50%);
+	background-size: 3em 3em;
+	background-origin: content-box;
+	padding: 0;
+	overflow-y:scroll;
+}
+pre[class*="edit-"]:before{
+	padding :2px;
+	color:crimson;
+}
+pre[class="edit-markup"]:before{
+	content:'HTML';
+}
+pre[class="edit-javascript"]:before{
+	content:'Java Script';
+}
+pre[class="edit-css"]:before{
+	content:'CSS';
+}
+
+.title-text.style-scope.paper-card:before {
+    content: '\2003 \2003';
+    background-image: url('/img/web.svg');
+    background-size: 28px;
+    background-repeat: no-repeat;
+    height: 36px;
+    width: 48px;
+}
