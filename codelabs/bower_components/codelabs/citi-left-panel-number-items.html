@@ -1,0 +1,335 @@
+
+<dom-module id="citi-left-panel-number-items">
+
+<template>
+	<style is="custom-style">
+	paper-dialog.size-position {
+      width: 500px;
+      overflow: auto;
+	}
+	.caption {
+	    padding-left: 12px;
+	    color: #a0a0a0;
+	  }
+	  paper-slider.blue {
+	    --paper-slider-knob-color: var(--paper-light-blue-500);
+	    --paper-slider-active-color: var(--paper-light-blue-500);
+  	  }
+  	  #position, #editPosition{
+  	  width:100%;
+  	  }
+	</style>
+	<iron-ajax url="/load_doc_left_panel" id="lftPanelAjax" handle-as="json" content-type="application/json" on-response="leftPanelResponse" method="POST"></iron-ajax>
+	<div class='menu blue '> 
+		<paper-menu selected="0">
+	    <template is="dom-repeat" items="{{listPageDetails}}" index-as="no">
+		    <paper-item on-click='item_click' data-args$="{{item._id}},{{item.title}},{{no}}" class='toc-item' id$="item_{{no}}">
+		    	<paper-ripple center></paper-ripple>
+		    	<span id='round_{{no}}' class$="line [[computeClass(no, item._id)]]"></span>
+		    	<i class='toc-number' data-args$="{{item._id}},{{item.title}},{{no}}">{{displayIndex(no)}} </i>
+		    	<span data-args$="{{item._id}},{{item.title}},{{no}}">{{item.title}}</span>
+		    </paper-item>
+    	</template>
+    	</paper-menu>
+    </div>
+    
+    <iron-ajax
+		url="/createNewPage" id='newPageAjax' handle-as="json"
+		content-type="application/json" 
+		on-response="newPageResponse" method='POST'></iron-ajax> 
+	<iron-ajax
+		url="/editPage" id='editPageAjax' handle-as="json"
+		content-type="application/json" 
+		on-response="editPageResponse" method='POST'></iron-ajax> 
+		
+	<paper-dialog class="size-position"  id="newPage" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+		<div class="vertical-section">
+			<h2>New Page</h2>
+			<paper-input id='des' label="Page Title" required auto-validate autofocus
+				error-message="Title can't be empty" value='{{page_title}}'></paper-input>
+			<br><div>Page Position: </div>
+			<paper-slider id="position" pin snaps  step="1" min="1"></paper-slider>
+			
+			<div class="buttons">
+				<paper-button dialog-dismiss> <iron-icon icon="close"></iron-icon>Cancel
+				</paper-button>
+				<paper-button on-tap='addNewPage'> 
+					<iron-icon icon="check"></iron-icon>Save 
+				</paper-button>
+			</div>
+		</div>
+	</paper-dialog> 
+	<paper-dialog class="size-position"  id="editPage" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+		<div class="vertical-section">
+			<h2>Edit Page Title/Position</h2>
+			<paper-input id='desEdit' label="Page Title" required auto-validate autofocus
+				error-message="Title can't be empty" value='{{page_title}}'></paper-input>
+			<br><div>Page Position: </div>
+			<paper-slider id="editPosition" pin snaps  step="1" min="1"></paper-slider>
+			
+			<div class="buttons">
+				<paper-button dialog-dismiss> <iron-icon icon="close"></iron-icon>Cancel
+				</paper-button>
+				<paper-button on-tap='editPage'> 
+					<iron-icon icon="check"></iron-icon>Save 
+				</paper-button>
+			</div>
+		</div>
+	</paper-dialog>
+</template>
+
+  <script>
+  LeftPanelNumberItems = Polymer({
+      is: 'citi-left-panel-number-items',
+      
+      properties:{
+    	  
+		listPageDetails :{
+			type :Object,
+			value:[]
+		},
+		config : {
+			type:Object,
+			notify :true
+		},
+		page_title: String,
+		tmp_page_title: String,
+		sel_page_id: String
+      },
+      
+      factoryImpl: function(_id, config) {
+          this.id = _id;
+          this.config = config;
+       },
+        item_click: function(e){
+         this.async(function(){
+        	 this.config.parent.$.progress.style.display = 'block';
+        	 var t = Polymer.dom(e).path[0].getAttribute('data-args').split(',');
+        	 this.tmp_page_title = t[1];
+        	  this.sel_page_id = t[0];
+	       	  this.config.parent.page = parseInt(t[2]);
+	       	  this.config.parent.loadPageContent(t[0]);
+	       	  this.config.parent.pageNavButtonControl();
+         })
+      },
+      
+      itemClick: function(){
+    	  var id = '#item_' + this.config.parent.page;
+    	  var item = this.$$(id);
+    	  if(item){
+    		  item.click();
+    	  }
+      },
+
+      leftPanelResponse: function(e, detail, sender){
+    	  this.listPageDetails = e.detail.response;
+    	  this.async(function(){
+	    	  var len = this.listPageDetails.length;
+	    	  this.config.parent.noOfPages = len;
+	    	  var isFirstTimePageLoad = (len == 0);
+	    	  if(isFirstTimePageLoad && this.config.parent.route.__queryParams.groupID && "edit" == this.config.parent.mode){
+	    		  this.addNewPageOpenDialog();
+	          }else if(len > 0){
+	        	  this.itemClick();
+	          }else{
+	        	  this.config.parent.clearDocContent();
+	          }
+	    	  this.config.parent.pageNavButtonControl();
+	    	  this.config.parent.$.progress.style.display ='node';
+    	  }, 100);
+      },
+      
+      addNewPageOpenDialog : function(){
+    	  	var positionEle  = this.$.position;
+    	  	var noOfPages =  this.listPageDetails.length;
+    	    positionEle.max = noOfPages + 1;
+    	    positionEle.maxMakers = noOfPages + 1;
+    	    positionEle.value = noOfPages + 1;
+    	    this.page_title = "";
+			this.$.newPage.open();
+	  },
+	  editPageOpenDialog : function(){
+  	  	var positionEle  = this.$.editPosition;
+  	  	var noOfPages =  this.listPageDetails.length;
+  	    positionEle.max = noOfPages;
+  	    positionEle.maxMakers = noOfPages + 1;
+  	    positionEle.value = noOfPages + 1;
+  	  	this.page_title = this.tmp_page_title;
+		this.$.editPage.open();
+	  },
+	  addNewPage: function(){
+		  if(this.$.des.validate()){
+			  this.config.parent.$.progress.style.display ='block';
+			  var position  = this.$.position.value;
+			  this.$.newPageAjax.body = JSON.stringify({title:this.page_title, page_position:position, docInfoId:this.config.parent.route.__queryParams.docId});
+			  this.$.newPageAjax.generateRequest();
+		  }
+	  },
+	  
+	  editPage: function(){
+		  if(this.$.desEdit.validate()){
+			  this.config.parent.$.progress.style.display ='block';
+			  var curPos = parseInt(this.config.parent.page) + 1;
+			  var newPos  = this.$.editPosition.value;
+			  var stPos = enPos = incVal =0;
+			  var posUpdateInfo ={};
+			  if(curPos > newPos){
+				  stPos = newPos;
+				  enPos = curPos;
+				  incVal = 1;
+			  }else if (curPos < newPos){
+				  stPos = curPos;
+				  enPos = newPos;
+				  incVal = -1;
+			  }
+			  this.$.editPageAjax.body = JSON.stringify({pageId: this.sel_page_id, title:this.page_title, posUpdateInfo : {stPos :stPos, enPos:enPos, incVal:incVal, newPos:newPos}});
+			  console.log(curPos + " : " + newPos);
+			  console.log(this.$.editPageAjax.body);
+			  this.$.editPageAjax.generateRequest();
+		  }
+	  },
+	  newPageResponse : function(e, detail, sender){
+		  var d = e.detail.response;
+         if (d._id){
+      	  this.$.newPage.close();
+      	  this.$.lftPanelAjax.generateRequest();
+        }else{
+      	  console.log('Error');
+        } 
+	  },
+	  editPageResponse : function(e, detail, sender){
+		  var d = e.detail.response;
+         if (d.Result == "OK"){
+      	  this.$.editPage.close();
+      	  this.tmp_page_title = d.title;
+      	  this.$.lftPanelAjax.generateRequest();
+        }else{
+      	  console.log('Error');
+        } 
+	  },
+	  computeClass: function(index, id){
+    	  if(0 == index && this.listPageDetails.length == 1){
+    		  return 'single'; 
+    	  }else if (0 == index){
+    		  return 'first'; 
+    	  }else if(this.listPageDetails.length - 1 === index) { 
+    		  return 'last'; } 
+    	  else 
+    	    { return; }
+    	},
+    	displayIndex: function(index) {
+            return index + 1;
+        }
+      
+    });
+  </script>
+	<style>
+	:host{
+		--paper-item:{
+			font-size:14px;
+			background:red;
+		}
+	}
+i {
+    font-style: italic;
+}
+.toc-item.completed i, .toc-item.completed i::before, .toc-item.completed i::after, .toc-item.core-selected i, .toc-item.paper-selected i:before {
+    border-color: #00BCD4;
+}
+.toc-item i {
+    display: inline-block;
+    font-style: normal;
+    width: 24px;
+    min-width: 24px;
+    background: #fff;
+    border-radius: 50%;
+    text-align: center;
+    height: 24px;
+    vertical-align: middle;
+    line-height: 24px;
+    margin-right: 8px;
+    font-weight: 400;
+    border: 2px solid #4285f4;
+    z-index:2;
+}
+.toc-item i:before, .toc-item i:after {
+    display: block;
+    border-left: 1px solid #BDBDBD;
+    width: 0;
+    height: 50px;
+    }
+.toc-item.completed, .toc-item.paper-selected {
+    color: #333333;
+}
+paper-item.paper-item-0{
+font-size:14px;
+line-height: 17px;
+}
+
+.toc-item {
+    --paper-item:{
+			font-size:14px;
+		};
+    color: #333333;
+    overflow: hidden;
+    border-radius: 2px;
+    cursor:pointer;
+    padding:0px 16px;
+    
+}
+--paper-menu-selected-item:{
+background:#999999;
+}
+.line{
+	border-left: 1px solid #4285f4;
+    position: relative;
+    left: 15px;
+    height: 60px;
+    z-index: 1;
+}
+.line.first{
+	top:20px;
+}
+.line.last{
+	bottom:20px;
+}
+.line.single{
+	display:none;
+}
+.toc-item:hover{
+	background: #E3F2FD;
+}
+.toc-item i:before {
+  margin-top: -50px;
+  margin-left: 14px;
+  }
+.toc-item i:after {
+    margin-left: 14px;
+}
+	
+.menu {
+  display: inline-block;
+  width: 100%;
+  background-color: #fff;
+  counter-reset: section;
+}
+
+.item {
+  position: relative;
+  height: 48px;
+  line-height: 48px;
+  color: var(--google-blue-700);
+  font-size: 0.7em;
+  cursor:pointer;
+}
+
+.menu.blue > .item {
+  color: var(--google-blue-700);
+}
+.label {
+  padding: 0 16px;
+  font-size:1.5em;
+}
+.plain {text-decoration: none}
+	</style>
+</dom-module>
