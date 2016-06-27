@@ -2,12 +2,6 @@
 <dom-module id="left-panel-viewer">
 
 <template>
-	<style is="custom-style">
-	paper-dialog.size-position {
-      width: 500px;
-      overflow: auto;
-	}
-	</style>
 	<iron-ajax url="/load_doc_left_panel" id="lftPanelAjax" handle-as="json"  content-type="application/json" on-response="leftPanelResponse" method="POST"></iron-ajax>
 	<div> 
 		<paper-menu selected="0">
@@ -145,13 +139,11 @@
     })
   });
   </script>
-	<style>
-	:host{
-		--paper-item:{
-			font-size:14px;
-			background:red;
-		}
-	}
+<style is="custom-style">
+paper-dialog.size-position {
+     width: 500px;
+     overflow: auto;
+}
 i {
     font-style: italic;
 }
@@ -199,8 +191,8 @@ line-height: 17px;
     padding:0px 16px;
     
 }
---paper-menu-selected-item:{
-background:#999999;
+.paper-menu-0 .selectable-content.paper-menu > .iron-selected{
+	background:#ff4081;
 }
 .line{
 	border-left: 1px solid var(--google-green-500, #60ab59);

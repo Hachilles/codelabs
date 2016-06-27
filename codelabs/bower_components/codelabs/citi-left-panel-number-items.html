@@ -2,23 +2,6 @@
 <dom-module id="citi-left-panel-number-items">
 
 <template>
-	<style is="custom-style">
-	paper-dialog.size-position {
-      width: 500px;
-      overflow: auto;
-	}
-	.caption {
-	    padding-left: 12px;
-	    color: #a0a0a0;
-	  }
-	  paper-slider.blue {
-	    --paper-slider-knob-color: var(--paper-light-blue-500);
-	    --paper-slider-active-color: var(--paper-light-blue-500);
-  	  }
-  	  #position, #editPosition{
-  	  width:100%;
-  	  }
-	</style>
 	<iron-ajax url="/load_doc_left_panel" id="lftPanelAjax" handle-as="json" content-type="application/json" on-response="leftPanelResponse" method="POST"></iron-ajax>
 	<div class='menu blue '> 
 		<paper-menu selected="0">
@@ -223,13 +206,23 @@
       
     });
   </script>
-	<style>
-	:host{
-		--paper-item:{
-			font-size:14px;
-			background:red;
-		}
-	}
+<style is="custom-style">
+paper-dialog.size-position {
+     width: 500px;
+     overflow: auto;
+}
+.caption {
+    padding-left: 12px;
+    color: #a0a0a0;
+ }
+paper-slider.blue {
+  --paper-slider-knob-color: var(--paper-light-blue-500);
+  --paper-slider-active-color: var(--paper-light-blue-500);
+}
+#position, #editPosition{
+width:100%;
+}
+	
 i {
     font-style: italic;
 }
@@ -275,10 +268,9 @@ line-height: 17px;
     border-radius: 2px;
     cursor:pointer;
     padding:0px 16px;
-    
 }
---paper-menu-selected-item:{
-background:#999999;
+.paper-menu-0 .selectable-content.paper-menu > .iron-selected{
+	background:#ff4081;
 }
 .line{
 	border-left: 1px solid #4285f4;
@@ -331,5 +323,6 @@ background:#999999;
   font-size:1.5em;
 }
 .plain {text-decoration: none}
-	</style>
+
+</style>
 </dom-module>
