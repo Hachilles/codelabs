@@ -1,52 +1,49 @@
-
 <!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
 <link rel="import" href="editor_imports.html">
 <link rel="import" href="left-panel-viewer.html">
+<link rel="import" href="../paper-star-rating-master/paper-star-rating.html">
 </head>
 <body unresolved>
 <dom-module id="citi-doc-viewer"> 
 	<template>
 	<style is custome-style>
-	#drawer {
-		background-color: #f1f1f3;
+	paper-drawer-panel {
+	  --paper-drawer-panel-left-drawer-container: {
+	    background-color: #f5f5f5;
+	    overflow-y:auto;
+	  };
 	}
-	
-	#paperDrawerPanel [main] {
-		background-color: #f1f1f3;
-		-webkit-overflow-scrolling: touch;
-		scroll-behavior: smooth;
+	paper-drawer-panel {
+	  --paper-drawer-panel-main-container: {
+	    background-color: #e0e0e0;
+			-webkit-overflow-scrolling: touch;
+			scroll-behavior: smooth;
+	  };
 	}
-	
 	.hide {
 		display: node;
 	}
-	
 	.content {
-		margin: 20px;
+		margin-top: 20px;
+		margin-left: 115px;
+		margin-right:100px;
+		margin-bottom:30px;
 	}
-	
 	.fab {
 		position: fixed;
 		z-index: 1;
 	}
-	
 	#citi_logo {
     --iron-image-height: 25px;
   }
-	#paperDrawerPanel [main] {
-		background-color: #CFD8DC;
-		-webkit-overflow-scrolling: touch;
-		scroll-behavior: smooth;
-	}
-	
 	paper-progress.red {
       --paper-progress-active-color: #ff4081;
       --paper-progress-secondary-color: var(--paper-red-100);
        width:100%;
-       display:none;
+       visibility:hidden;
     }
 	
 	paper-scroll-header-panel {
@@ -71,31 +68,56 @@
 	}
 	
 	footer[wide-layout] {
-		width: calc(100% - 256px);
+		width: calc(100% - 316px);
 		position: fixed;
 		height: 5em;
 		background: tranperant; 
 		bottom: 10px;
 		@apply(--layout-horizontal);
       	@apply(--layout-justified);
+      	margin-right:30px;
+      	margin-left:30px;
 	}
 	footer {
 		position: fixed;
-		width:100%;
+		width:calc(100% - 40px);
 		height: 5em;
 		background: tranperant; 
 		bottom: 10px;
 		@apply(--layout-horizontal);
       	@apply(--layout-justified);
+      	margin-right:20px;
+      	margin-left:20px;
 	}
-	footer.right{ margin-right:10px;}
-	footer.left{ margin-left:10px;}
 	.title_badge{
 		margin-left: -45px;
 	    margin-top: -28px;
-	    background: var(--paper-orange-500); 
+	    background: #81C784;
 	    padding: 2px;
 	    border-radius: 2px;
+	}
+	.scroll-btn{
+   	background: #eeeeee;
+    border-radius: 2px;
+    opacity: .8;
+   }
+   .scroll-btn:hover{
+   	color:#1e88e5
+   }
+	.around-icon{
+	   	border-radius:50%;
+	   	background:#81C784;
+	   	margin-right:5px;
+	   	transition: all 0.3s linear;
+	   	width:35px;
+   		height:35px;
+   }
+   .around-icon:hover{
+   background:var(--paper-yellow-500);
+   color:#555555;
+   }
+   #citi_doc_view_container{
+		transition: all 0.3s linear;
 	}
 </style>
   
@@ -110,31 +132,34 @@
 	<paper-header-panel drawer id="drawer"> 
 
 		
-	<div id="leftanelDiv" drawer style='margin: 16px 16px 16px 12px;'>
+	<div id="leftanelDiv" drawer style='margin: 16px 16px 16px 12px;background:#f5f5f5;'>
 		<left-panel-viewer id='lpViewer' config="{{config}}"></left-panel-viewer>
 	    </div>
 
 	</paper-header-panel> 
-	<paper-scroll-header-panel main fixed> 
+	<paper-scroll-header-panel main fixed id="viewerScrollPanel"> 
 		<paper-toolbar>
 			<paper-icon-button icon="arrow-back" on-click="goBack"></paper-icon-button>
 			<div class="flex title">{{route.__queryParams.docName}}</div>
-			<paper-icon-button icon="translate"></paper-icon-button>
+			<paper-star-rating></paper-star-rating>
+			<!-- <paper-icon-button icon="translate" class="around-icon"></paper-icon-button> -->
 			<iron-image id="citi_logo" alt="Citi logo" src="/img/citi_corp.png"></iron-image><div class="title_badge">Doc Viewer</div>
-			<paper-icon-button icon="more-vert"></paper-icon-button> 
 		</paper-toolbar>
-		<div style='width: 100%'>
+		<div style='width: 100%;position:fixed;z-index:9000'>
 				<paper-progress class="red" id='progress' indeterminate value="800" min="100" max="1000"></paper-progress>
 		</div>	
 		<paper-material elevation="4" class="content" main
 			style='background:#FFFFFF'> 
 			
-		<div id='citi_doc_view_container' style='margin: 40px;font-size:14px'></div>
+		<div id='citi_doc_view_container' style='margin: 30px;font-size:14px'></div>
 		</paper-material> 
 		<footer wide-layout$={{wide}}>
 				<div>
 					<paper-fab id='back_btn' class="left"
 					icon="arrow-back" title="Previous Page" disabled on-tap="movebackward"></paper-fab>
+				</div>
+				<div>
+					<paper-icon-button icon="arrow-upward" on-click="scrollToTop" class="scroll-btn"></paper-icon-button>
 				</div>
 				<div>
 					<paper-fab id='forward_btn' class="right"
@@ -194,6 +219,10 @@
 	},
 	loadPageContent(pid){
 		this.$.loadDocContent.body = JSON.stringify({pageId:pid});
+		
+		if (this.$.loadDocContent.lastRequest) {
+            this.$.loadDocContent.lastRequest.abort();
+        }
   	  	this.$.loadDocContent.generateRequest();
 	},
 	viewLeftPanelLoadResponse : function(e, detail, sender){
@@ -229,7 +258,18 @@
     		
       goBack : function(){
     	  delete this.route.__queryParams.pageId;
+    	  if (this.$.loadDocContent.lastRequest) {
+              this.$.loadDocContent.lastRequest.abort();
+          }
     	  this.set('route.path', '/cardsPanel');
+    	  this.clearDocContent();
+    	  this.config.leftPanel.listPageDetails = [];
+      },
+      scrollToTop : function(){
+    	  this.$.viewerScrollPanel.scrollToTop(true);
+      },
+      scrollPanelOpacity : function(op){
+    	  this.$.citi_doc_view_container.style.opacity = op;
       },
       clearDocContent: function(){
       	this.$.citi_doc_view_container.innerHTML="";
@@ -250,7 +290,8 @@
 	          this.pageId = d._id;
           	  setupEditor(this.mode);
       		  this.$.citi_doc_view_container.contentEditable =false;
-      		  this.config.parent.$.progress.style.display='none';
+      		  this.config.parent.$.progress.style.visibility='hidden';
+      		  this.scrollPanelOpacity(1);
 	      	 }
         },
         moveForward :  function(){

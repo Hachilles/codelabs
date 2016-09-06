@@ -1,6 +1,9 @@
 	<dom-module id="citi-left-panel-items"> 
 	
 	<style is="custom-style">
+	:host{
+		--paper-menu-background-color: #f5f5f5;
+	}
 paper-dialog.size-position {
      width: 500px;
      overflow: auto;
@@ -34,9 +37,7 @@ background-color: #fff;
 }
 
 .groupHeader {
-	color: #FFFFFF;
-	background:#3F51B5;
-	font-size:15px;
+	color: #3F51B5;
 }
 
 .action:hover {
@@ -62,7 +63,7 @@ paper-item.paper-item-0 {
 	<div class='menu blue '>
 		<template is="dom-repeat" items="{{listGroups}}" as='groups'>
 			<paper-item class="groupHeader">
-			  <paper-item-body style="font-size:16px"> {{groups.group}}</paper-item-body>
+			  <paper-item-body on-click='item_click' data-args$=",{{groups._id}}" style="font-size:16px;font-weight:700;"> {{groups.group}}</paper-item-body>
               <paper-icon-button icon="add" on-click="addNewGroupItemOpenDialog" data-args$="{{groups._id}}"></paper-icon-button>
            </paper-item>
 			
@@ -99,12 +100,20 @@ paper-item.paper-item-0 {
           this.config = config;
        },
       item_click: function(e){
-    	this.config.parent.$.progress.style.display='block';
-     	var p = Polymer.dom(e).path[0].getAttribute('data-args').split(',');
-     	
-     	this.config.parent.setParam('route.__queryParams.groupID', p[1]);
-     	this.config.parent.setParam('route.__queryParams.category', p[0]);
-     	this.config.cardsPanel.$.cardsLoadAjax.body = JSON.stringify(this.config.parent.route.__queryParams);
+    	this.config.parent.$.progress.style.visibility='visible';
+    	var dataArg = Polymer.dom(e).path[0].getAttribute('data-args');
+    	if(dataArg){
+	     	var p = Polymer.dom(e).path[0].getAttribute('data-args').split(',');
+	     	this.config.parent.setParam('route.__queryParams.groupID', p[1]);
+	     	this.config.parent.setParam('route.__queryParams.category', p[0]);
+    	}else{
+    		this.config.parent.setParam('route.__queryParams.groupID', "");
+	     	this.config.parent.setParam('route.__queryParams.category', "");
+    	}
+    	var input = JSON.parse(JSON.stringify(this.config.parent.route.__queryParams));
+		input.search = this.config.parent.searchtext;
+		
+     	this.config.cardsPanel.$.cardsLoadAjax.body = JSON.stringify(input);
     	this.config.cardsPanel.$.cardsLoadAjax.generateRequest();
      	console.log(this.config);
        },
@@ -118,12 +127,14 @@ paper-item.paper-item-0 {
     	     	
     	     	this.config.cardsPanel.$.cardsLoadAjax.body = JSON.stringify(this.config.parent.route.__queryParams);
      	    	this.config.cardsPanel.$.cardsLoadAjax.generateRequest();
-     	    	this.config.parent.$.progress.style.display='none';
+     	    	this.config.parent.$.progress.style.visibility='hidden';
+     	    	this.config.parent.populateCategories(this.listGroups);
     	     }
          },
       refresh : function(){
       	   this.$.populateLftPanel.generateRequest();
       },
+     
       addNewGroupItemOpenDialog : function(e){
 	   	   this.groupId = e.target.getAttribute('data-args');
 	   	   if(!this.groupId){

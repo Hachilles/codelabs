@@ -1,6 +1,6 @@
 <html>
 <body>
-<dom-module id="citi-list-cards">
+<dom-module id="citi-list-cards-animated">
 
 <template>
 <style is="custom-style">
@@ -47,36 +47,27 @@
       @apply(--layout-flex);
       @apply(--layout-end-justified);
     }
-    #cards{
-   @apply(--layout-horizontal);
-   @apply(--layout-wrap);
-   margin:60px;
-   }   
-   paper-card.rate { 
-   @apply(--layout-horizontal); 
-   width:calc(33% - 30px);
-   } 
+   iron-list {
+          margin-top: 25px;
+          padding-bottom: 16px;
+        }
+	@media (max-width: 400px) {
+         iron-list {
+           margin-top: 20px;
+         }
+   }
    
-   @media (max-width: 900px) {
-   		paper-card.rate { 
-   		width:calc(50% - 30px);
-   		margin-right: 15px;
-    	margin-left: 15px;
-   		}
-   }
-   @media (max-width: 500px) {
-	   paper-card.rate { 
-	   	width:calc(100% - 30px);
-	   	margin-right: 15px;
-    	margin-left: 15px;
-	   }
-   }
+   paper-card.rate {
+   margin:8px;
+   @apply(--layout-horizontal); 
+   width:30%;
+   min-width:300px;}
+   
    .rate-image[narrow_layout]{
    	width: 25%;
    }
    .rate-image{
    	width:16%;
-    height:100%;
     background:url('/img/1.jpg');
     background-size:cover;
    }
@@ -122,7 +113,7 @@
 	#noresult-found-contain {
 	    width: 96%;
 	    height: 400px;
-	    background: #eeeeee;
+	    background: #dddddd;
 	    margin:2%;
 	 }
 	 .noresult-found-message{
@@ -130,7 +121,6 @@
 		 line-height:30px;
 		 text-align:center;
 		 vertical-align:middle;
-		 font-weight:500;
 		 color:#673ab7;
 	 }
 	 .overlay{
@@ -197,9 +187,10 @@
 	<iron-ajax url="/editDoc" id='editDocAjax' handle-as="json" content-type="application/json"  body='[[getEditAjaxReq(groupID, doc_id)]]' method='POST'></iron-ajax>
 	<iron-ajax url="/load_main_panel" id='cardsLoadAjax' content-type="application/json" handle-as="json" last-response="{{listdocs}}" on-response="cardsLoadResponse" method='POST'></iron-ajax>
 	
-	<div id="cards">
-    <template is="dom-repeat" items="{{listdocs}}" as="doc" index-as='no'>
-			<paper-card class="rate">
+    
+    <iron-list items="{{listdocs}}" as="doc" index-as='no' scroll-target="document" grid>
+        <template><div class="cardContainer">
+          <paper-card class="rate">
 			  <div class="rate-content">
 			    <div class="card-content">
 			      <div class="rate-header"><iron-icon class$="icon-app-[[_random(no, doc.title, 1)]]" icon="apps"></iron-icon> {{doc.title}}
@@ -230,17 +221,17 @@
 			  </div>
 			  <div class$="rate-image img_[[_random(no, doc.title, 0)]]" narrow_layout$="{{!wide}}"></div>
 			  <div class$="overlay overlay[[_random(no, doc.title, 0)]]" >
-				      	<paper-icon-button class="overlay-icon" icon="pageview" data-args$="{{doc._id}},{{doc.title}}" on-click="view" title="View Documents"></paper-icon-button>
-						<paper-icon-button class="overlay-icon" icon="create" data-args$="{{doc._id}},{{doc.title}}"  on-click="edit" title="View Document"></paper-icon-button>
-						<paper-icon-button class="overlay-icon" icon="delete" data-args$="{{doc._id}},{{doc.title}}" on-click="deleteDialogOpen" title="Delete Document"></paper-icon-button>
+		      	<paper-icon-button class="overlay-icon" icon="pageview" data-args$="{{doc._id}},{{doc.title}}" on-click="view" title="View Documents"></paper-icon-button>
+				<paper-icon-button class="overlay-icon" icon="create" data-args$="{{doc._id}},{{doc.title}}"  on-click="edit" title="View Document"></paper-icon-button>
+				<paper-icon-button class="overlay-icon" icon="delete" data-args$="{{doc._id}},{{doc.title}}" on-click="deleteDialogOpen" title="Delete Document"></paper-icon-button>
 			 </div>
 			</paper-card>
-    </template>
+			</div>
+        </template>
+      </iron-list>
     
     <template is="dom-if" if="[[!anyDocsFoufnd(listdocs)]]">
-    	<div class="flex-center-justified" style="width:100%">
-    		<div class="noresult-found-message">No document found for selected Group/Category</div>
-    	</div>
+    	<div class="noresult-found-message"> No document found for selected Group/Category</div>
     	<iron-image sizing="contain" id="noresult-found-contain" alt="No documents found" src="/img/400.svg"></iron-image>
     </template>
     </div>
@@ -248,8 +239,8 @@
 </template>
 
   <script>
-  CardsPanel = Polymer({
-      is: 'citi-list-cards',
+  CardsPanel1 = Polymer({
+      is: 'citi-list-cards-animated',
       
       properties: {
     	 

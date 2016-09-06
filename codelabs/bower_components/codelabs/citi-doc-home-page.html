@@ -15,13 +15,36 @@
       width: 500px;
       overflow: auto;
     }
-    .blueHeader {
-      background-color: #283593;
-      color: #fff;
+    
+    body {
+      margin: 0;
+      font-family: 'Roboto', 'Noto', sans-serif;
+      background-color: #ECEFF1;
     }
 
-    .blueHeader paper-icon-button {
-      --paper-icon-button-ink-color: white;
+    app-header {
+      background-color: #4285f4;
+      color: #ffffff;
+    }
+
+    app-header paper-icon-button {
+      --paper-icon-button-ink-color: #ffffff;
+    }
+
+    app-drawer-layout {
+      --app-drawer-layout-content-transition: margin 0.2s;
+    }
+
+    app-drawer {
+      --app-drawer-content-container: {
+        background-color: #ffffff;
+      }
+    }
+
+    .drawer-content {
+      margin-top: 80px;
+      height: calc(100% - 80px);
+      overflow: auto;
     }
 
     .iconItem {
@@ -32,25 +55,27 @@
       height: 216px;
     }
 	paper-progress.red {
-      --paper-progress-active-color: #ff4081;
+      --paper-progress-active-color: crimson;
       --paper-progress-secondary-color: var(--paper-red-100);
        width:100%;
-       display:none;
+       visibility:hidden;
     }
 	
     #citi_logo {
 	    --iron-image-height: 25px;
+	    margin-left: 30px;
 	}
   paper-dialog.colored {
       color: crimson;
    }
    .around-icon{
-   	padding:8px;
    	border-radius:50%;
-   	background:var(--paper-yellow-500); 
-   	color:var(--paper-indigo-500); 
-   	margin-right:6px;
+   	background:var(--paper-indigo-500); 
+   	color:#ffffff; 
+   	margin-right:5px;
     transition: all 0.5s linear;
+    width:35px;
+   	height:35px;
    }
    .pink:hover{
 	   background:var(--paper-pink-500); 
@@ -59,10 +84,89 @@
    .title_badge{
 		margin-left: -45px;
 	    margin-top: -28px;
-	    background: #FF1744; 
 	    padding: 2px;
 	    border-radius: 2px;
 	}
+	 paper-dropdown-menu-light.custom {
+    --paper-dropdown-menu-label: {
+      color: var(--paper-grey-500);
+      text-align: center;
+      background:#FFFFFF;
+    }
+    --paper-dropdown-menu-input: {
+      color: var(--paper-indigo-500);
+      font-style: normal;
+      font-family: serif;
+      text-transform: uppercase;
+      /* no underline */
+      border-bottom: none;
+    }
+  }
+  .around-jstify{
+  	@apply(--layout-horizontal);
+    @apply(--layout-justified);
+    background: #4a4a4a;
+    box-shadow: 0 3px 6px -3px #fff;
+  }
+  .category-tabs{
+  	color:#E0E0E0;
+  	text-transform:uppercase;
+  	font-size:.79rem;
+  	font-weight:500;
+  	--paper-tabs-selection-bar-color:#616161;
+  }
+  .category-tabs paper-tab:hover{
+  background:#444444;
+  }
+  .paper-input-container{
+  	background: #EFEFEF;
+    border-radius: 2px;
+    width: 100%;
+    top: -10px;
+  }
+  --paper-dropdown-menu-input:{
+  color:#FFFFFF;
+  }
+  .custom{
+  padding: 0px 10px;
+  background:#ffffff;
+  min-width: 250px;
+  width: 20%;
+  }
+  .search-panel{
+  	@apply(--layout-horizontal);
+    @apply(--layout-center);
+  	color:#616161;
+  	background:#FFFFFF;
+  	margin-right:10px;
+  	width:40%;
+  	min-width:200px;
+  	border-radius:2px;
+  	padding: 0 4px 0px 4px;
+  	opacity:.4;
+  }
+  .search-panel:hover, .search-panel:focus{
+	  opacity:1;
+	  color:#e0e0e0;
+	  transition: all 0.3s linear;
+  }
+  .searchtext{
+   font-family: 'Roboto', 'Noto', sans-serif;
+   font-size:.8em;
+   background:#fffff;
+   color:#212121;
+   padding:.45em;
+   border:none;
+   @apply(--layout-flex);
+  }
+  .center{
+  @apply(--layout-horizontal-justified);
+  @apply(--layout-center);
+  }
+  .clearSearch:hover{
+  cursor:pointer;
+  
+  }
     </style>
    <template>
    		
@@ -74,46 +178,64 @@
     <iron-ajax url="/addNewDoc" handle-as="json"  on-response='addNewDocResponse' content-type="application/json" id='addNewDocAjax' method="POST"></iron-ajax> 
 	<iron-media-query query="(min-width: 600px)" query-matches="{{wide}}"></iron-media-query>
 	
-	<app-drawer-layout>
+	<app-header-layout>
+	<app-drawer-layout id="drawerLayout">
 
-      <app-drawer swipe-open>
-        <app-header-layout has-scrolling-region>
-
-          <app-header class="blueHeader" waterfall fixed>
-            <app-toolbar>
-              <iron-image id="citi_logo" alt="Citi logo" src="/img/citi_corp.png"></iron-image>
-              <div style="font-size:12px" class="title_badge">Code Labs</div>
-              <paper-icon-button icon="create-new-folder" on-click="addNewGroupOpenDialog" style="margin-left:80px;"></paper-fab>
-              
-            </app-toolbar>
-          </app-header>
-		
+      <app-drawer swipe-open style="top:-55px">
 		 <div id='leftPanelDiv'></div>
           <!-- <citi-left-panel-items route="{{route}}" id="left_panel_items"></citi-left-panel-items> -->
-
-        </app-header-layout>
       </app-drawer>
-
-      <app-header-layout>
-
-        <app-header class="blueHeader" condenses reveals effects="waterfall">
+      <app-toolbar class="around-jstify">
+      	<paper-tabs selected="0" class="category-tabs">
+			  <paper-tab>POPULAR</paper-tab>
+			  <paper-tab>RECENT</paper-tab>
+			  <paper-tab>DURATION</paper-tab>
+		</paper-tabs>
+		<div class="center">
+		<paper-dropdown-menu-light class="custom" label="Category" id="category_dropdown" no-label-float>
+			  
+			 <paper-listbox class="dropdown-content" >
+			  <paper-item style="background:#616161;color:#efefef">
+				  <paper-item-body style="font-size:16px;font-weight:700;" on-click='item_click'> All </paper-item-body>
+	           </paper-item>
+			  <template is="dom-repeat" items="{{listGroups}}" as='groups'>
+				<paper-item style="background:#efefef;color:#616161">
+				  <paper-item-body style="font-size:16px;font-weight:700;" on-click='item_click' data-args$=",{{groups._id}}"> {{groups.group}}</paper-item-body>
+	              <paper-icon-button icon="add" on-click="addNewGroupItemOpenDialog" data-args$="{{groups._id}}"></paper-icon-button>
+	           </paper-item>
+			
+				<template is="dom-repeat" items="{{groups.categories}}" index-as='no'>
+				<paper-item on-click='item_click' data-args$="{{item}},{{groups._id}}"
+					class='action iconItem'> <paper-ripple></paper-ripple> 
+					<span data-args$="{{item}},{{groups._id}}">{{item}}</span> </paper-item>
+				</template> 
+			</template>
+		</paper-listbox>
+		</paper-dropdown-menu-light>
+		<paper-icon-button icon="add" on-click="addNewGroupOpenDialog" style="top:-7px;color:#e0e0e0"></paper-icon-button>
+		<paper-icon-button icon="note-add" on-click="addNewDocOpenDialog"  style="top:-7px;color:#e0e0e0"></paper-icon-button>
+		</div>
+      </app-toolbar>
+	  <div id="cardsPanelDiv"></div>
+	  </app-drawer-layout>
+	  
+        <app-header class="blueHeader" fixed condenses reveals effects="waterfall">
           <app-toolbar>
-            <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
+            <!-- <paper-icon-button icon="menu" id="toggle" on-tap="toggleLeftPanel"></paper-icon-button> -->
+            <iron-image id="citi_logo" alt="Citi logo" src="/img/citi_corp.png"></iron-image>
+            <div style="font-size:12px" class="title_badge">Code Labs</div>
             <div spacer title>{{route.__queryParams.category}}</div>
-            <paper-icon-button icon="add" on-click="addNewDocOpenDialog" class="around-icon pink" ></paper-icon-button>
-            <paper-icon-button icon="search"></paper-icon-button>
+            <div class="search-panel">
+            <iron-icon icon="search" prefix></iron-icon>
+            <input is="iron-input" bind-value="{{searchtext}}" class="searchtext" placeholder="search">
+            <iron-icon class="clearSearch" icon="clear" on-tap="clearSearch"></iron-icon>
+            </div>
           </app-toolbar>
 
           <div style='width:100%'><paper-progress class="red" id='progress' indeterminate value="800" min="100" max="1000"></paper-progress></div>
         </app-header>
 
-        <!-- <citi-list-cards id='cardsPanel' route="{{route}}"></citi-list-cards> -->
-        <div id="cardsPanelDiv"></div>
-
-      </app-header-layout>
-
-    </app-drawer-layout>
-	
+	</app-header-layout>
 	
 	<paper-dialog id="newdocDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop class="size-position">
       <div class="vertical-section">
@@ -155,13 +277,13 @@
     <paper-dialog id="errorMsgDialog" class="colored" with-backdrop>
       <h2>Error message ...</h2>
       <p><b>Group</b> and <b>Category</b> should be required to creating a new document</p>
-      <p> Click on <iron-icon icon="add-circle"></iron-icon> button left top of the application to create new <b>Group</b> and <b>Category</b></p>
+      <p> Click on <iron-icon icon="add"></iron-icon> button right top of the application to create new <b>Group</b> and <b>Category</b> or select existing category from drop down list</p>
       <paper-button dialog-dismiss autofocus>OK</paper-button>
     </paper-dialog>
     
-    <paper-dialog id="newGroupItemDialog" model entry-animation="scale-up-animation" exit-animation="fade-out-animation" class="size-position">
+    <paper-dialog id="newGroupItemDialog" model entry-animation="scale-up-animation" exit-animation="fade-out-animation" class="size-position" with-backdrop>
 	<div class="vertical-section">
-		<h2>New Group Item</h2>
+		<h2>New Category</h2>
 		<paper-input autofocus id="groupItem" label="Group Item" required auto-validate
 			error-message="Group item can't be empty" value='{{groupItem}}'></paper-input>
 		<div class="buttons">
@@ -216,14 +338,23 @@
 				value:{
 				},
 				notify :true
+			},
+			listGroups: {
+				type: Object
+			},
+			searchtext:{
+				type:String
 			}
-			
 		},
 		
 		setParam: function (path, value){
 			this.set(path, value);
 		},
-		
+		item_click: function(e){
+			console.log(e);
+			this.config.leftPanel.item_click(e);
+			this.$.category_dropdown.close();
+ 		},
 		attached: function (){
 				this.set('config.parent', this);
 				var cardsPanel = new CardsPanel('cardsPanelEle', this.config);
@@ -234,9 +365,45 @@
 
 				Polymer.dom(this.$.cardsPanelDiv).appendChild(cardsPanel);
 				Polymer.dom(this.$.leftPanelDiv).appendChild(leftPanel);
-				
-			console.log('Config object.. :');
-			console.log(this.config);
+				this.toggleLeftPanel();
+			//console.log('Config object.. :');
+			//console.log(this.config);
+		},
+		observers: ['_searchtexthChanged(searchtext)'],
+		
+		_searchtexthChanged : function(searchTxt){
+			var len = searchTxt.length;
+			if(len > 2){
+				this.$.progress.style.visibility='visible';
+				var input = JSON.parse(JSON.stringify(this.route.__queryParams));
+				input.search = this.searchtext;
+				this.config.cardsPanel.$.cardsLoadAjax.body = JSON.stringify(input);
+				this.config.cardsPanel.$.cardsLoadAjax.generateRequest();
+			}else if(len == 0 && this.config.cardsPanel){
+				this.$.progress.style.visibility='visible';
+				this.config.cardsPanel.$.cardsLoadAjax.body = JSON.stringify(this.config.parent.route.__queryParams);
+				this.config.cardsPanel.$.cardsLoadAjax.generateRequest();
+			}
+		},
+		clearSearch : function(){
+			if(this.searchtext != ""){
+				this.$.progress.style.visibility='visible';
+				this.searchtext="";
+			}
+		},
+		populateCategories : function(listGrp){
+			this.listGroups = listGrp;
+		},
+		addNewGroupItemOpenDialog : function(e){
+			this.config.leftPanel.addNewGroupItemOpenDialog(e);
+		},
+		toggleLeftPanel :function(){
+			var drawerLayout = this.$.drawerLayout;
+		      if (drawerLayout.forceNarrow || !drawerLayout.narrow) {
+		        drawerLayout.forceNarrow = !drawerLayout.forceNarrow;
+		      } else {
+		        drawerLayout.drawer.toggle();
+		      }
 		},
 		addNewGroupItem : function(){
 			if(this.$.groupItem.validate()){
@@ -274,7 +441,7 @@
            if (d.result == 'OK'){
         	  this.$.newdocDialog.close();
         	  this.doc_description = this.doc_title = '';
-        	  this.config.leftPanel.refresh();
+        	  this.config.cardsPanel.refresh();
           }else{
         	  console.log('Error');
           }

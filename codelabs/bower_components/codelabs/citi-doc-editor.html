@@ -3,36 +3,42 @@
 <head>
 <meta charset="utf-8">
 <link rel="import" href="editor_imports.html">
+<link rel="import" href="citi-left-panel-number-items.html">
 </head>
 <body unresolved>
 	<dom-module id="citi-doc-editor"> 
 	<template>
 	<style is custome-style>
-	#drawer {
-		background-color: #f1f1f3;
-	}
+		
+	paper-drawer-panel {
 	
-	#paperDrawerPanel [main] {
-		background-color: #f1f1f3;
-		-webkit-overflow-scrolling: touch;
-		scroll-behavior: smooth;
+	  --paper-drawer-panel-main-container: {
+	    background-color: #e0e0e0;
+			-webkit-overflow-scrolling: touch;
+			scroll-behavior: smooth;
+	  };
+	  --paper-drawer-panel-left-drawer-container: {
+	    background-color: #f5f5f5;
+	    overflow-y:auto;
+	  };
 	}
 	
 	.hide {
 		display: node;
 	}
-	
 	.content {
-		margin: 20px;
+		margin-top: 20px;
+		margin-left: 115px;
+		margin-right:100px;
+		margin-bottom:30px;
 	}
-	
 	.fab {
 		position: fixed;
 		z-index: 1;
 	}
 	.save { 
-		--paper-fab-background: var(--paper-yellow-500); 
-		--paper-fab-keyboard-focus-background: var(--paper-yellow-900);
+		--paper-fab-background: #0f9d58; 
+		--paper-fab-keyboard-focus-background: var(--paper-green-900);
 		right: 32px;
 		top: 67px;
 	}
@@ -40,17 +46,11 @@
 	#citi_logo {
     --iron-image-height: 25px;
   }
-	#paperDrawerPanel [main] {
-		background-color: #CFD8DC;
-		-webkit-overflow-scrolling: touch;
-		scroll-behavior: smooth;
-	}
-	
 	paper-progress.red { 
 	--paper-progress-active-color: var(--paper-red-500);
     --paper-progress-secondary-color: var(--paper-red-100);
 	width: 100%;
-	display: none;
+	visibility: hidden;
 	}
 	
 	paper-scroll-header-panel {
@@ -59,11 +59,11 @@
 		right: 0;
 		bottom: 0;
 		left: 0;
-		background-color: var(--paper-grey-200, #eee);;
+		background-color: var(--paper-grey-200, #eee);
 	}
 	
 	paper-toolbar {
-		background-color: var(--google-blue-500, #4285f4);
+		background-color: #1e88e5;
 	}
 	
 	paper-toolbar .title {
@@ -74,34 +74,46 @@
 		padding: 8px;
 	}
 	footer[wide-layout] {
-		width: calc(100% - 256px);
+		width: calc(100% - 316px);
 		position: fixed;
 		height: 5em;
 		background: tranperant; 
 		bottom: 10px;
 		@apply(--layout-horizontal);
       	@apply(--layout-justified);
+      	margin-right:30px;
+      	margin-left:30px;
 	}
 	footer {
 		position: fixed;
-		width: 100%;
+		width:calc(100% - 40px);
 		height: 5em;
 		background: tranperant; 
 		bottom: 10px;
 		@apply(--layout-horizontal);
       	@apply(--layout-justified);
+      	margin-right:20px;
+      	margin-left:20px;
 	}
-	footer.right{ margin-right:10px;}
-	footer.left{ margin-left:10px;}
+	
 	paper-dialog.colored {
       color: crimson;
    }
+   .scroll-btn{
+   	background: #DFDFDF;
+    border-radius: 2px;
+    opacity: .8;
+   }
+   .scroll-btn:hover{
+   	color:#1e88e5
+   }
    .around-icon{
-   	padding:8px;
    	border-radius:50%;
    	background:cornflowerblue;
-   	margin-right:6px;
-   	transition: all 0.5s linear;
+   	margin-right:5px;
+   	transition: all 0.3s linear;
+   	width:35px;
+   	height:35px;
    }
    .red:hover{
    background:var(--paper-red-500); 
@@ -118,6 +130,9 @@
 	    background: var(--paper-orange-500); 
 	    padding: 2px;
 	    border-radius: 2px;
+	}
+	#page_container{
+		transition: all 0.3s linear;
 	}
 </style>
   	<iron-media-query query="(min-width: 600px)" query-matches="{{wide}}"></iron-media-query>
@@ -144,7 +159,7 @@
 		<citi-left-panel-number-items id='lp' config="{{config}}"></citi-left-panel-number-items>
 	</div>
 	</paper-header-panel> 
-	<paper-scroll-header-panel main fixed> 
+	<paper-scroll-header-panel main fixed id="scrollPanel"> 
 	<paper-toolbar>
 		<paper-icon-button icon="arrow-back" on-click="goBack"></paper-icon-button>
 			<div class="flex title">{{route.__queryParams.docName}}</div>
@@ -157,19 +172,23 @@
 			<div class="title_badge"> Doc Editor </div>
 			<paper-icon-butto icon="more-vert"></paper-icon-button> 
 		</paper-toolbar>
-		<div style="width:100%"><paper-progress class="red" id='progress' indeterminate value="800" min="100" max="1000"></paper-progress></div>
+		<div style="width:100%;position:fixed;z-index:9000"><paper-progress class="red" id='progress' indeterminate value="800" min="100" max="1000"></paper-progress></div>
 		
 		
-	<paper-material elevation="4" class="content" main
-		style='background:#FFFFFF'> 
+	<paper-material elevation="4" class="content" main style='background:#FFFFFF'> 
 		
-	<div id='citi_doc_container' style='margin: 40px;font-size:14px'></div>
+	<div style='margin: 30px;margin-bottom:30px; font-size:14px' id='page_container'>
+	
+	</div>
 	<paper-fab class="fab save" id="save_btn" icon="check" title="Save"
 		on-tap="save"></paper-fab> </paper-material> 
 	<footer wide-layout$={{wide}}>
 		<div>
 			<paper-fab id='back_btn' class="left" icon="arrow-back" title="Previous Page" disabled
 				on-tap="movebackward"></paper-fab>
+		</div>
+		<div>
+			<paper-icon-button icon="arrow-upward" on-click="scrollToTop" class="scroll-btn"></paper-icon-button>
 		</div>
 		<div>
 			<paper-fab id='forward_btn' class="right"
@@ -219,6 +238,10 @@
 				},
 				notify :true
 			},
+			unSavedContent : {
+				type:Boolean,
+				value:false,
+			},
 		  noOfPages: {type:Number,
 			  	value:1
 		  }
@@ -231,7 +254,7 @@
 		this.set('config.parent', this);
 		this.noOfPages = 0;
 		this.page = 0;//reset
-		console.log(this.$.lp);
+		//console.log(this.$.lp);
 		this.set('config.leftPanel', this.$.lp);
 			
 	},
@@ -242,8 +265,14 @@
 	},
 	loadPageContent(pid){
 		this.$.fileContentAjax.body = JSON.stringify({pageId:pid});
+		if (this.$.fileContentAjax.lastRequest) {
+            this.$.fileContentAjax.lastRequest.abort();
+         }
   	  	this.$.fileContentAjax.generateRequest();
 	},
+	clearDocContent: function(){
+		this.$.page_container.innerHTML = "";
+    },
 	observers: [
                 'loadLeftPanelListner(route.__queryParams.groupID, route.__queryParams.category, route.path)'
               ],
@@ -255,10 +284,21 @@
 				}, 100);
     		},
       goBack : function(){
+    	  this.page = 0;
     	  delete this.route.__queryParams.pageId;
+    	  if (this.$.fileContentAjax.lastRequest) {
+              this.$.fileContentAjax.lastRequest.abort();
+           }
     	  this.set('route.path', '/cardsPanel');
+    	  this.clearDocContent();
+    	  this.config.leftPanel.listPageDetails = [];
       },
-      
+      scrollToTop : function(){
+    	  this.$.scrollPanel.scrollToTop(true);
+      },
+      scrollPanelOpacity : function(op){
+    	  this.$.page_container.style.opacity = op;
+      },
       toggleSelection: function(e) {
         var item = this.$.employeeList.itemForElement(e.target);
         this.$.selector.select(item);
@@ -272,37 +312,33 @@
       },
       handleResponse: function(e, detail, sender){
           var d = e.detail.response;
+          _content = d.content;
           if(d){
-	          this.$.citi_doc_container.innerHTML=d.content;
+	          this.$.page_container.innerHTML= '<div id="editable_content">' + d.content + '</div>'
 	          this.pageId = d._id;
-	          if(this.mode == 'edit'){
-	          	setupEditor(this.mode);
-	      	  }else{
-	    		this.$.save_btn.remove();
-	    		this.$.addpage_btn.remove();
-	      		setupEditor();
-	      		this.$.citi_doc_container.contentEditable =false;
-	      	  }
+	          setupEditor(this.mode);
           }else{
-        	  this.$.citi_doc_container.innerHTML="";
+        	  this.$.page_container.innerHTML="";
           }
-          this.$.progress.style.display='none';
+          this.$.progress.style.visibility='hidden';
+          this.scrollPanelOpacity(1);
         },
         clearDocContent: function(){
-        	this.$.citi_doc_container.innerHTML="";
+        	this.$.page_container.innerHTML="";
         },
         saveResponse: function(e, detail, sender){
             var d = e.detail.response;
             this.$.msg.text = 'Content is Saved ..';
             this.$.msg.show();
-            this.$.progress.style.display='none';
+            this.$.progress.style.visibility='hidden';
+            this.$.save_btn.removeAttribute('disabled');
         },
         openDeletePageDialog : function(){
       	  this.$.deletePageDialog.open();  
         },
         deletePage : function(){
-      	  this.$.progress.style.display='block';
-      	  this.$.deletePageAjax.body = JSON.stringify({pageId : this.pageId});
+      	  this.$.progress.style.visibility='visible';
+      	  this.$.deletePageAjax.body = JSON.stringify({pageId : this.pageId, docInfoId:this.route.__queryParams.docId});
         	  this.$.deletePageAjax.generateRequest();
         },
         deleteResponse: function(e, detail, sender){
@@ -311,16 +347,17 @@
             this.$.msg.show();
             this.$.deletePageDialog.close();
             this.config.leftPanel.$.lftPanelAjax.generateRequest();
-            this.$.progress.style.display='none';
+            this.$.progress.style.visibility='hidden';
         },
         save : function(){
-        	this.$.progress.style.display='block';
-        	var pageContent = this.$$('#citi_doc_container').innerHTML;
-        	console.log(pageContent);
-        	console.log(this.pageId)
+        	this.$.save_btn.setAttribute('disabled', true);
+        	this.$.progress.style.visibility='visible';
+        	var pageContent = this.$$('#editable_content').innerHTML;
         	this.$.saveAjax.body = JSON.stringify({pageId : this.pageId, content: pageContent});
         	this.$.saveAjax.generateRequest();
+        	_content = pageContent;
         },
+        
         moveForward :  function(){
         	this.page ++;
         	this.config.leftPanel.itemClick();
@@ -350,9 +387,13 @@
      
      function setupEditor(mode){
     	 var allStyleClasses = "edit-javascript edit-markup edit-css hint warning blackQuote";
-		 var editor = new MediumEditor('#citi_doc_container', {
+		 var editor = new MediumEditor('#editable_content', {
             toolbar: {
                 buttons: ['bold', 'italic', 'underline', 'strikethrough', 'fontsize', 'anchor', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull', 'superscript', 'subscript', 'orderedlist', 'unorderedlist', 'removeFormat', 'outdent', 'indent', 'h2', 'h3','table','quote','warning', 'hint', 'js','html','css'],
+                /* options which only apply when static is true */
+                /* align: 'left',
+                sticky: true,
+                updateOnEmptySelection: true */
             } ,
             extensions: {
                 'table': new MediumEditorTable(),
@@ -393,26 +434,20 @@
             }
         });
 		 
-		 if(mode == 'edit'){
-		    $('#citi_doc_container').mediumInsert({
-		        editor: editor
-		    });
-		 }else{
-			 $('pre[class*="edit-"]').each(function(){
-				 var cl = $(this).attr('class');
-				 $(this).addClass('line-numbers');
-				 var prism_cl = cl.replace('edit-','language-');
-				 $(this).find("p").each(function () {
-					    $(this).replaceWith($(this).text() + "<br/>");
-				 });
-				 var str = $(this).html();
-				 var regex = /<br\s*[\/]?>/gi;
-				 var code = $('<code/>').addClass(prism_cl).text(str.replace(regex, "\n"));
-				 $(this).html(code).removeClass(cl);
-				 
-			 })
-			 Prism.highlightAll(false, function(){});
-		 }
+	    $('#editable_content').mediumInsert({
+	        editor: editor
+	    });
+	    var prev_selected_element = null;
+	    $( "#editable_content" ).on('click', '*', function(e){
+	    	//alert(prev_selected_element);
+	    	if(prev_selected_element){
+	    		//prev_selected_element.removeClass('sel_for_delete');
+	    		prev_selected_element.css("border", "none");
+	    	}
+	    	prev_selected_element = $(e.target);
+	    	prev_selected_element.css("border", "2px dashed crimson");
+	    	//prev_selected_element.addClass("sel_for_delete");
+	    });
 		return editor;
 	}
      
